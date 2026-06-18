@@ -231,7 +231,7 @@ body {
   margin-bottom: 8px;
   font-family: 'Space Mono', monospace;
 }
-.zona-cobertura strong {
+strong.zona-cobertura {
   color: var(--text);
   margin-left: 4px;
 }
@@ -459,7 +459,7 @@ function renderCardZona(zona) {
       '<div class="zona-led ' + estado + '"></div>' +
     '</div>' +
     '<div class="zona-info">' +
-      '<span>Cobertura<strong class="zona-cobertura">' + Math.round(zona.cobertura) + '%</strong></span>' +
+      '<span>Cobertura: <strong class="zona-cobertura">' + Math.round(zona.cobertura) + '%</strong></span>' +
       (zona.tieneEvento ? '<span style="color: var(--warn);">⚡ Evento activo</span>' : '<span>—</span>') +
     '</div>' +
     '<div class="zona-slider-row">' +

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Admin — Vientos sin fronteras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #2d333b;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --aero: #5DCAA5;
+  --warn: #EF9F27;
+  --danger: #E24B4A;
+  --ok: #1D9E75;
+  --acento: #AFA9EC;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 30px 20px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.contenedor {
+  width: 100%;
+  max-width: 700px;
+}
+
+.titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.sub {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+
+.bloque {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.bloque h2 {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.btn {
+  width: 100%;
+  border: none;
+  color: white;
+  padding: 14px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-bottom: 10px;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-rojo  { background: var(--danger); }
+.btn-verde { background: var(--ok); }
+.btn-azul  { background: var(--acento); color: #0a0a14; }
+.btn-gris  { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+.selector-modelo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.btn-modelo {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-modelo:hover, .btn-modelo.activo {
+  background: var(--acento);
+  color: #0a0a14;
+  border-color: var(--acento);
+}
+
+.estado-panel {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  background: var(--surface2);
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: var(--text);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.estado-panel .label { color: var(--muted); }
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ok);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 1000;
+}
+.toast.error { background: var(--danger); }
+.toast.visible { opacity: 1; }
+
+.warning {
+  background: rgba(239,159,39,0.1);
+  border-left: 3px solid var(--warn);
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.warning strong { color: var(--warn); }
+
+.atajos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.atajos a {
+  display: block;
+  text-align: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  transition: all 0.2s;
+}
+.atajos a:hover {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <h1 class="titulo">⚙️ ADMIN · VIENTOS SIN FRONTERAS</h1>
+  <p class="sub">Panel interno para testeo — no compartir con jugadoras</p>
+
+  <!-- Estado actual -->
+  <div class="bloque">
+    <h2>Estado actual de la partida</h2>
+    <div class="estado-panel" id="estado-panel">Cargando...</div>
+  </div>
+
+  <!-- Iniciar partida -->
+  <div class="bloque">
+    <h2>Iniciar partida nueva</h2>
+    <div class="warning">
+      Elegí un modelo de transformador para usar en esta partida (o dejá que se elija al azar).
+    </div>
+    <div class="selector-modelo" id="selector-modelo">
+      <button class="btn-modelo" data-modelo="">Aleatorio</button>
+      <button class="btn-modelo" data-modelo="TX-2C">TX-2C</button>
+      <button class="btn-modelo" data-modelo="TX-3D">TX-3D</button>
+      <button class="btn-modelo" data-modelo="TX-4A">TX-4A</button>
+      <button class="btn-modelo" data-modelo="TX-5A">TX-5A</button>
+      <button class="btn-modelo" data-modelo="TX-6B">TX-6B</button>
+      <button class="btn-modelo" data-modelo="TX-7B">TX-7B</button>
+      <button class="btn-modelo" data-modelo="TX-9C">TX-9C</button>
+    </div>
+    <button class="btn btn-verde" id="btn-iniciar">▶ Iniciar partida</button>
+  </div>
+
+  <!-- Reset -->
+  <div class="bloque">
+    <h2>Reset completo</h2>
+    <div class="warning">
+      <strong>Atención:</strong> esto borra todo: partida, sliders, alertas, generadores y elecciones de rol. Las chicas conectadas quedarán sin rol elegido.
+    </div>
+    <button class="btn btn-rojo" id="btn-reset">⟲ Reset completo de la partida</button>
+  </div>
+
+  <!-- Atajos -->
+  <div class="bloque">
+    <h2>Atajos a prototipos</h2>
+    <div class="atajos">
+      <a href="aerogenerador_prototipo.html" target="_blank">🌬 Aerogenerador</a>
+      <a href="panel_prototipo.html" target="_blank">🛰 Panel</a>
+      <a href="tecnico_prototipo.html" target="_blank">🔧 Técnico</a>
+      <a href="programador_prototipo.html" target="_blank">⚙️ Programador</a>
+      <a href="distribuidor_prototipo.html" target="_blank">⚡ Distribuidor</a>
+      <a href="index.jsp" target="_blank">🏠 Login</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let modeloElegido = ''; // '' = aleatorio
+
+function mostrarToast(mensaje, esError) {
+  const t = document.getElementById('toast');
+  t.textContent = mensaje;
+  t.className = 'toast visible' + (esError ? ' error' : '');
+  setTimeout(function () { t.className = 'toast'; }, 2500);
+}
+
+document.querySelectorAll('.btn-modelo').forEach(function (btn) {
+  btn.onclick = function () {
+    document.querySelectorAll('.btn-modelo').forEach(function (b) { b.classList.remove('activo'); });
+    this.classList.add('activo');
+    modeloElegido = this.dataset.modelo;
+  };
+});
+// Por defecto, activar "Aleatorio"
+document.querySelector('.btn-modelo[data-modelo=""]').classList.add('activo');
+
+document.getElementById('btn-iniciar').onclick = async function () {
+  this.disabled = true;
+  this.textContent = 'Iniciando...';
+  try {
+    let url = '/vientos-sin-fronteras/AccionServlet?accion=iniciar_partida';
+    if (modeloElegido) url += '&modelo=' + encodeURIComponent(modeloElegido);
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      mostrarToast('Partida iniciada con ' + d.modelo);
+      refrescarEstado();
+    } else {
+      mostrarToast(d.error || 'Error', true);
+    }
+  } catch (e) {
+    mostrarToast('Error de conexión', true);
+  }
+  this.disabled = false;
+  this.textContent = '▶ Iniciar partida';
+};
+
+document.getElementById('btn-reset').onclick = async function () {
+  if (!confirm('¿Confirmás el reset completo? Esto borra todo.')) return;
+  this.disabled = true;
+  this.textContent = 'Reseteando...';
+  try {
+    const r = await fetch('/vientos-sin-fronteras/AccionServlet?accion=reset_partida', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      mostrarToast('Partida reseteada');
+      refrescarEstado();
+    } else {
+      mostrarToast(d.error || 'Error', true);
+    }
+  } catch (e) {
+    mostrarToast('Error de conexión', true);
+  }
+  this.disabled = false;
+  this.textContent = '⟲ Reset completo de la partida';
+};
+
+async function refrescarEstado() {
+  try {
+    const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
+    const e = await r.json();
+    const lineas = [
+      'Estado:           ' + (e.estado || '-'),
+      'Tiempo restante:  ' + (e.tiempoRestante || '-'),
+      'Puntaje:          ' + (e.puntaje !== undefined ? e.puntaje : '-'),
+      '',
+      'Transformador:    ' + (e.panel.transformador.modelo || '(sin modelo)'),
+      'Tx configurado:   ' + (e.programador.txConfigurado ? 'sí' : 'no'),
+      'Subestación ON:   ' + (e.programador.subestacionOn ? 'sí' : 'no'),
+      'ML conectado:     ' + (e.programador.mlConectado ? 'sí' : 'no'),
+      '',
+      'Viento:           ' + e.panel.viento,
+      'Aerogenerador:    ' + (e.panel.aerogeneradorDireccion || 'N'),
+      'Eficiencia:       ' + (e.panel.eficiencia !== undefined ? e.panel.eficiencia + '%' : '-'),
+      'kW actuales:      ' + e.panel.energiaActual,
+      'Carga transf.:    ' + e.panel.cargaActual + '%',
+      '',
+      'Batería:          ' + (e.distribuidor ? Math.round(e.distribuidor.bateria) + '/100' : '-'),
+      'Generadores:      ' + (e.distribuidor ? e.distribuidor.generadoresRestantes + '/3' : '-'),
+      '',
+      'Alertas activas:  ' + (e.alertas && e.alertas.length > 0 ? e.alertas.map(function (a) { return a.codigo; }).join(', ') : 'ninguna')
+    ];
+    document.getElementById('estado-panel').textContent = lineas.join('\n');
+  } catch (err) {
+    document.getElementById('estado-panel').textContent = 'Error consultando el estado: ' + err.message;
+  }
+}
+
+refrescarEstado();
+setInterval(refrescarEstado, 2000);
+</script>
+</body>
+</html>

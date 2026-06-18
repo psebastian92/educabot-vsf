@@ -61,6 +61,15 @@ public class AccionServlet extends HttpServlet {
                 case "activar_gen":
                     activarGenerador(conn, req, out);
                     break;
+                case "rotar_aero":
+                    rotarAerogenerador(conn, req, out);
+                    break;
+                case "reset_partida":
+                    resetPartida(conn, out);
+                    break;
+                case "iniciar_partida":
+                    iniciarPartida(conn, req, out);
+                    break;
                 default:
                     resp.setStatus(400);
                     out.print("{\"error\":\"acción no reconocida: " + accion + "\"}");
@@ -252,6 +261,36 @@ public class AccionServlet extends HttpServlet {
     }
 
     /**
+     * Persiste la dirección actual del aerogenerador en BD.
+     * Recibe el parámetro: direccion (N, NE, E, SE, S, SO, O, NO).
+     * Esto se llama desde la pantalla del Aerogenerador cada vez que la chica
+     * rota el molino con un gesto.
+     */
+    private void rotarAerogenerador(Connection conn, HttpServletRequest req, PrintWriter out)
+            throws SQLException {
+        String dir = req.getParameter("direccion");
+        if (dir == null) {
+            out.print("{\"error\":\"falta parámetro direccion\"}");
+            return;
+        }
+        // Validar contra las 8 direcciones permitidas
+        boolean valida = false;
+        for (String d : new String[]{"N","NE","E","SE","S","SO","O","NO"}) {
+            if (d.equals(dir)) { valida = true; break; }
+        }
+        if (!valida) {
+            out.print("{\"error\":\"dirección inválida: " + dir + "\"}");
+            return;
+        }
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE partida SET aerogenerador_direccion=? WHERE id=1")) {
+            ps.setString(1, dir);
+            ps.executeUpdate();
+        }
+        out.print("{\"ok\":true}");
+    }
+
+    /**
      * Mueve el slider de una zona específica. Recibe params: zona (nombre) y valor (0-100).
      * No valida que sumen 100 entre las 4 — eso lo controla el frontend porque
      * en el juego las chicas las mueven independientemente.
@@ -334,5 +373,70 @@ public class AccionServlet extends HttpServlet {
         }
 
         out.print("{\"ok\":true,\"restantes\":" + (restantes - 1) + "}");
+    }
+
+    /**
+     * Reset completo de la partida: pone todo en estado inicial "esperando".
+     */
+    private void resetPartida(Connection conn, PrintWriter out) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE partida SET " +
+                "estado='esperando', inicio=NULL, ultimo_tick_ms=0, " +
+                "modelo_tx_activo=NULL, tx_configurado=0, subestacion_on=0, ml_conectado=0, " +
+                "gesto1_direccion=NULL, gesto2_direccion=NULL, aerogenerador_direccion='N', " +
+                "energia_total_kw=0, bateria=0, puntaje=0, " +
+                "transformadores_quemados=0, generadores_restantes=3, tx_sobrecarga_desde=NULL " +
+                "WHERE id=1")) {
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE zona SET slider_pct=25, cobertura_pct=0, " +
+                "generador_activo=0, generador_inicio=NULL")) {
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM alerta")) {
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE sala_jugadoras SET rol_elegido=NULL")) {
+            ps.executeUpdate();
+        }
+        out.print("{\"ok\":true}");
+    }
+
+    /**
+     * Iniciar partida: setea estado=jugando, inicio=NOW(), y elige un transformador.
+     * Opcionalmente recibe parámetro 'modelo' para usar uno específico (útil para test).
+     * Si no se pasa, elige uno al azar de los 7.
+     */
+    private void iniciarPartida(Connection conn, HttpServletRequest req, PrintWriter out)
+            throws SQLException {
+        String modeloPedido = req.getParameter("modelo");
+        String modelo = modeloPedido;
+
+        if (modelo == null || modelo.isEmpty()) {
+            // Elegir uno al azar
+            List<String> disponibles = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement("SELECT modelo FROM transformador");
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) disponibles.add(rs.getString(1));
+            }
+            if (disponibles.isEmpty()) {
+                out.print("{\"error\":\"no hay transformadores en la tabla\"}");
+                return;
+            }
+            Collections.shuffle(disponibles);
+            modelo = disponibles.get(0);
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE partida SET estado='jugando', inicio=NOW(), ultimo_tick_ms=0, " +
+                "modelo_tx_activo=?, tx_configurado=0, subestacion_on=0, ml_conectado=0, " +
+                "bateria=0, puntaje=0 WHERE id=1")) {
+            ps.setString(1, modelo);
+            ps.executeUpdate();
+        }
+
+        out.print("{\"ok\":true,\"modelo\":\"" + modelo + "\"}");
     }
 }

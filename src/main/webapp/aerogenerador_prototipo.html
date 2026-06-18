@@ -685,7 +685,23 @@ button:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
       <div class="aero-info">
         <div class="aero-orientacion">Orientación: <strong id="aero-orientacion-txt">N</strong></div>
-        <div class="aero-hint" id="aero-hint">Hacé el gesto entrenado para girar.</div>
+        <div class="aero-orientacion" style="color: #E24B4A;">Viento desde: <strong id="viento-actual-aero">—</strong></div>
+        <div class="aero-orientacion" style="color: #5DCAA5;">Eficiencia: <strong id="eficiencia-actual-aero">—</strong></div>
+        <div class="aero-hint" id="aero-hint">Hacé un gesto MUY claro y sostenido para girar.</div>
+        <button id="btn-pausa-reconocimiento" style="
+          margin-top: 12px;
+          padding: 8px 16px;
+          background: #1c2128;
+          border: 1px solid #5DCAA5;
+          color: #5DCAA5;
+          border-radius: 6px;
+          font-family: 'Space Mono', monospace;
+          font-size: 12px;
+          letter-spacing: 1px;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+        " onclick="togglePausa()">⏸ Pausar reconocimiento</button>
       </div>
     </div>
 
@@ -946,7 +962,7 @@ function actualizarBarraReco(gesto, confianza) {
 }
 
 function mostrarFeedbackControl(estado, nombre) {
-  // estado: 'idle' | 'detectado' | 'esperando'
+  // estado: 'idle' | 'detectado' | 'esperando' | 'pausado'
   const icono = document.getElementById('feedback-icono');
   const texto = document.getElementById('feedback-texto');
   if (!icono || !texto) return;
@@ -959,10 +975,14 @@ function mostrarFeedbackControl(estado, nombre) {
     icono.textContent = '⏳';
     icono.classList.remove('detectando');
     texto.innerHTML = 'Detectado <strong>' + nombre.toUpperCase() + '</strong>, pero el aerogenerador no se moverá hasta que el Programador conecte el bloque ML.';
+  } else if (estado === 'pausado') {
+    icono.textContent = '⏸';
+    icono.classList.remove('detectando');
+    texto.innerHTML = '<strong>Reconocimiento pausado.</strong> El aerogenerador no rotará. Apretá "Reanudar" para volver a controlar con gestos.';
   } else {
     icono.textContent = '✋';
     icono.classList.remove('detectando');
-    texto.textContent = 'Hacé un gesto para girar el aerogenerador.';
+    texto.textContent = 'Hacé un gesto MUY claro y sostenido para girar el aerogenerador.';
   }
 }
 
@@ -1022,6 +1042,15 @@ function rotar(direccion) {
 
   orientacionIdx = (orientacionIdx + direccion + 8) % 8;
   actualizarVistaAero();
+  persistirDireccionAero();
+}
+
+function persistirDireccionAero() {
+  const dir = ORIENTACIONES[orientacionIdx];
+  fetch('/vientos-sin-fronteras/AccionServlet?accion=rotar_aero&direccion=' + encodeURIComponent(dir),
+    { method: 'POST' }).catch(function (e) {
+    console.error('No se pudo persistir la dirección del aerogenerador:', e);
+  });
 }
 
 // La configuración de gestos viene del Programador (BD).
@@ -1031,10 +1060,37 @@ let configProgramador = null;  // { gesto1: -1|+1, gesto2: -1|+1 }
 
 let ultimoGestoRotado = null;
 
+let reconocimientoPausado = false;
+
+function togglePausa() {
+  reconocimientoPausado = !reconocimientoPausado;
+  const btn = document.getElementById('btn-pausa-reconocimiento');
+  if (reconocimientoPausado) {
+    btn.textContent = '▶ Reanudar reconocimiento';
+    btn.style.background = '#5DCAA5';
+    btn.style.color = '#0a1614';
+    btn.style.borderColor = '#5DCAA5';
+    mostrarFeedbackControl('pausado');
+  } else {
+    btn.textContent = '⏸ Pausar reconocimiento';
+    btn.style.background = '#1c2128';
+    btn.style.color = '#5DCAA5';
+    btn.style.borderColor = '#5DCAA5';
+    mostrarFeedbackControl('idle');
+  }
+}
+
 function manejarReconocimientoEnControl(topLabel, topConfianza) {
   if (!enControl) return;
 
-  if (topConfianza < 0.85) {
+  // Si el reconocimiento está pausado, mostrar idle y no rotar
+  if (reconocimientoPausado) {
+    mostrarFeedbackControl('pausado');
+    return;
+  }
+
+  // Umbral alto (0.95) para que solo dispare con poses muy claras
+  if (topConfianza < 0.95) {
     mostrarFeedbackControl('idle');
     return;
   }
@@ -1076,12 +1132,18 @@ async function consultarConfigProgramador() {
     const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
     const e = await r.json();
 
-    // El backend devuelve gesto1_direccion y gesto2_direccion en la partida
-    // (sin embargo, mi versión actual del EstadoServlet no los expone explícitamente
-    //  porque están dentro del campo de partida; vamos a ir al endpoint específico).
-    // Por ahora aprovechamos que ml_conectado indica que ya está armado el bloque.
+    // Leer dirección del viento y mostrarla en la pantalla del Aerogenerador
+    if (e.panel && e.panel.viento) {
+      const vientoEl = document.getElementById('viento-actual-aero');
+      if (vientoEl) vientoEl.textContent = e.panel.viento;
+      const eficEl = document.getElementById('eficiencia-actual-aero');
+      if (eficEl && e.panel.eficiencia !== undefined) {
+        eficEl.textContent = e.panel.eficiencia + '%';
+      }
+    }
+
+    // Leer config del Programador
     if (e.programador && e.programador.mlConectado) {
-      // Leer las direcciones desde el bloque programador (que las expone)
       const g1 = e.programador.gesto1Direccion || 'izquierda';
       const g2 = e.programador.gesto2Direccion || 'derecha';
       configProgramador = {
@@ -1092,7 +1154,7 @@ async function consultarConfigProgramador() {
       configProgramador = null;
     }
   } catch (err) {
-    console.error('No se pudo consultar config del Programador:', err);
+    console.error('No se pudo consultar el backend:', err);
   }
 }
 
