@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Distribuidor de Energía — Vientos sin fronteras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #2d333b;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --aero: #5DCAA5;
+  --warn: #EF9F27;
+  --danger: #E24B4A;
+  --ok: #1D9E75;
+  --acento: #AFA9EC;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.header {
+  max-width: 1300px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.rol-badge {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.rol-icono {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #BA7517, #EF9F27);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.header-stats {
+  display: flex; gap: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.stat-chip strong { color: var(--aero); margin-left: 6px; }
+.stat-chip.tiempo strong { color: var(--acento); }
+
+.estado-banner {
+  max-width: 1300px;
+  margin: 0 auto 14px;
+  padding: 10px 16px;
+  background: rgba(175,169,236,0.08);
+  border-left: 3px solid var(--acento);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.estado-banner strong { color: var(--acento); }
+
+.layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 200px 1fr 280px;
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ===== Batería ===== */
+.bateria-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+}
+.card-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.bateria-svg {
+  width: 100%;
+  max-width: 120px;
+  margin: 0 auto;
+  display: block;
+}
+.bateria-cuerpo {
+  fill: var(--surface2);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+.bateria-fill {
+  transition: y 0.5s, height 0.5s, fill 0.3s;
+}
+.bateria-valor {
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--aero);
+}
+.bateria-unidad {
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 1px;
+  margin-top: -8px;
+}
+
+/* ===== Generadores de emergencia ===== */
+.gens-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 8px;
+  text-align: center;
+}
+.gens-row {
+  display: flex; gap: 8px; justify-content: center;
+}
+.gen-item {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 4px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--warn);
+  transition: opacity 0.3s;
+}
+.gen-item.gastado {
+  opacity: 0.25;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.gen-icono {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* ===== Mapa ===== */
+.mapa-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.mapa-svg {
+  width: 100%;
+  aspect-ratio: 1.5;
+  background: #0a1a14;
+  border-radius: 6px;
+  display: block;
+}
+
+/* ===== Cards de zonas ===== */
+.zonas-panel {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.zona-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  transition: border-color 0.3s;
+}
+.zona-card.critica { border-color: var(--danger); }
+.zona-card.iluminada { border-color: var(--ok); }
+
+.zona-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.zona-nombre {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.zona-led {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: all 0.3s;
+}
+.zona-led.iluminada { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.zona-led.parcial { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.zona-led.critica { background: var(--danger); box-shadow: 0 0 6px var(--danger); animation: pulse 1s infinite; }
+.zona-led.sin { background: #444; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.zona-info {
+  display: flex; justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-family: 'Space Mono', monospace;
+}
+.zona-cobertura strong {
+  color: var(--text);
+  margin-left: 4px;
+}
+.zona-slider-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.zona-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  outline: none;
+}
+.zona-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--aero);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.zona-slider::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: var(--aero);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+.zona-slider-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  min-width: 32px;
+  text-align: right;
+}
+.btn-gen {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  padding: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-gen:hover { background: var(--warn); color: var(--bg); }
+.btn-gen:disabled { opacity: 0.3; cursor: default; }
+.btn-gen.activo {
+  background: var(--warn);
+  color: var(--bg);
+  animation: pulse 1.5s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="rol-badge">
+    <div class="rol-icono">⚡</div>
+    <span>DISTRIBUIDOR DE ENERGÍA</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">Puntos<strong id="puntaje">0</strong></div>
+    <div class="stat-chip tiempo">⏱<strong id="tiempo-restante">15:00</strong></div>
+  </div>
+</div>
+
+<div class="estado-banner">
+  Estado: <strong id="estado-actual">esperando</strong>
+</div>
+
+<div class="layout">
+
+  <!-- Columna izquierda: batería + generadores -->
+  <div class="bateria-card">
+    <div class="card-title" style="text-align: center;">Batería Central</div>
+
+    <svg viewBox="0 0 100 160" class="bateria-svg" xmlns="http://www.w3.org/2000/svg">
+      <!-- Terminal arriba -->
+      <rect x="35" y="0" width="30" height="10" rx="2" class="bateria-cuerpo"/>
+      <!-- Cuerpo principal -->
+      <rect x="10" y="10" width="80" height="145" rx="6" class="bateria-cuerpo"/>
+      <!-- Relleno (cambia con JS) -->
+      <rect x="14" y="151" width="72" height="0" rx="3" fill="var(--aero)" class="bateria-fill" id="bateria-fill"/>
+      <!-- Marcas de nivel -->
+      <line x1="14" y1="46"  x2="22" y2="46"  stroke="var(--border)" stroke-width="1"/>
+      <line x1="14" y1="82"  x2="22" y2="82"  stroke="var(--border)" stroke-width="1"/>
+      <line x1="14" y1="118" x2="22" y2="118" stroke="var(--border)" stroke-width="1"/>
+    </svg>
+
+    <div>
+      <div class="bateria-valor"><span id="bateria-valor">0</span><span style="color: var(--muted); font-size: 14px;">/100</span></div>
+      <div class="bateria-unidad">UNIDADES</div>
+    </div>
+
+    <div class="gens-titulo">Generadores de emergencia</div>
+    <div class="gens-row" id="gens-row">
+      <div class="gen-item" data-idx="0"><span class="gen-icono">⛽</span>GEN-1</div>
+      <div class="gen-item" data-idx="1"><span class="gen-icono">⛽</span>GEN-2</div>
+      <div class="gen-item" data-idx="2"><span class="gen-icono">⛽</span>GEN-3</div>
+    </div>
+  </div>
+
+  <!-- Columna central: mapa -->
+  <div class="mapa-card">
+    <div class="card-title" style="margin-bottom: 10px;">Mapa del barrio</div>
+    <svg viewBox="0 0 600 400" class="mapa-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-mapa" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="600" height="400" fill="url(#grid-mapa)"/>
+
+      <!-- ZONA OESTE: rectángulo grande arriba a la izquierda -->
+      <g id="zona-Oeste">
+        <path d="M 30 30 L 280 30 L 280 200 L 220 200 L 220 230 L 30 230 Z"
+              fill="rgba(99,153,34,0.18)" stroke="rgba(99,153,34,0.5)" stroke-width="2"/>
+        <text x="155" y="120" text-anchor="middle"
+              fill="rgba(255,255,255,0.6)" font-family="Space Mono" font-weight="700" font-size="22">OESTE</text>
+        <text x="155" y="145" text-anchor="middle"
+              fill="rgba(255,255,255,0.4)" font-family="Space Mono" font-size="10">DEMANDA 25 u/s</text>
+      </g>
+
+      <!-- ZONA CENTRO: cuadrado en el medio -->
+      <g id="zona-Centro">
+        <path d="M 220 200 L 380 200 L 380 280 L 220 280 Z"
+              fill="rgba(99,153,34,0.18)" stroke="rgba(99,153,34,0.5)" stroke-width="2"/>
+        <text x="300" y="240" text-anchor="middle"
+              fill="rgba(255,255,255,0.6)" font-family="Space Mono" font-weight="700" font-size="22">CENTRO</text>
+        <text x="300" y="262" text-anchor="middle"
+              fill="rgba(255,255,255,0.4)" font-family="Space Mono" font-size="10">DEMANDA 15 u/s</text>
+      </g>
+
+      <!-- ZONA ESTE: arriba a la derecha -->
+      <g id="zona-Este">
+        <path d="M 280 30 L 570 30 L 570 230 L 380 230 L 380 200 L 280 200 Z"
+              fill="rgba(99,153,34,0.18)" stroke="rgba(99,153,34,0.5)" stroke-width="2"/>
+        <text x="425" y="120" text-anchor="middle"
+              fill="rgba(255,255,255,0.6)" font-family="Space Mono" font-weight="700" font-size="22">ESTE</text>
+        <text x="425" y="145" text-anchor="middle"
+              fill="rgba(255,255,255,0.4)" font-family="Space Mono" font-size="10">DEMANDA 25 u/s</text>
+      </g>
+
+      <!-- ZONA LAGO: abajo (forma redondeada) -->
+      <g id="zona-Lago">
+        <path d="M 30 230 L 220 230 L 220 280 L 380 280 L 380 230 L 570 230 L 570 370 Q 300 400 30 370 Z"
+              fill="rgba(55,138,221,0.22)" stroke="rgba(55,138,221,0.55)" stroke-width="2"/>
+        <text x="300" y="335" text-anchor="middle"
+              fill="rgba(255,255,255,0.6)" font-family="Space Mono" font-weight="700" font-size="22">LAGO</text>
+        <text x="300" y="357" text-anchor="middle"
+              fill="rgba(255,255,255,0.4)" font-family="Space Mono" font-size="10">DEMANDA 40 u/s</text>
+      </g>
+
+      <!-- Marcadores de generador activo (los ocultamos por defecto) -->
+      <g id="gen-marker-Oeste" style="display:none;">
+        <circle cx="50" cy="50" r="10" fill="var(--warn)"/>
+        <text x="50" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#000">G</text>
+      </g>
+      <g id="gen-marker-Centro" style="display:none;">
+        <circle cx="365" cy="215" r="10" fill="var(--warn)"/>
+        <text x="365" y="219" text-anchor="middle" font-size="11" font-weight="700" fill="#000">G</text>
+      </g>
+      <g id="gen-marker-Este" style="display:none;">
+        <circle cx="555" cy="50" r="10" fill="var(--warn)"/>
+        <text x="555" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#000">G</text>
+      </g>
+      <g id="gen-marker-Lago" style="display:none;">
+        <circle cx="50" cy="360" r="10" fill="var(--warn)"/>
+        <text x="50" y="364" text-anchor="middle" font-size="11" font-weight="700" fill="#000">G</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Columna derecha: cards por zona -->
+  <div class="zonas-panel" id="zonas-panel">
+    <!-- Se llenan en JS -->
+  </div>
+
+</div>
+
+<script>
+const ZONAS = ['Centro', 'Este', 'Oeste', 'Lago'];
+
+function estadoZona(cobertura, tieneEvento) {
+  // La presencia de evento NO cambia el estado visual, solo aparece como indicador
+  // (rayito ⚡) en la card. El estado se calcula solo por % de cobertura.
+  if (cobertura === 0) return 'sin';
+  if (cobertura < 30)  return 'critica';
+  if (cobertura < 85)  return 'parcial';
+  return 'iluminada';
+}
+
+function colorZona(estado) {
+  switch (estado) {
+    case 'iluminada': return { fill: 'rgba(29,158,117,0.35)',  stroke: 'rgba(29,158,117,0.8)' };
+    case 'parcial':   return { fill: 'rgba(239,159,39,0.25)',  stroke: 'rgba(239,159,39,0.7)' };
+    case 'critica':   return { fill: 'rgba(226,75,74,0.28)',   stroke: 'rgba(226,75,74,0.8)'  };
+    case 'sin':       return { fill: 'rgba(80,80,80,0.2)',     stroke: 'rgba(120,120,120,0.4)' };
+  }
+}
+
+function pintarZonaEnMapa(nombre, estado) {
+  const g = document.getElementById('zona-' + nombre);
+  if (!g) return;
+  const path = g.querySelector('path');
+  const c = colorZona(estado);
+  path.setAttribute('fill', c.fill);
+  path.setAttribute('stroke', c.stroke);
+}
+
+function renderCardZona(zona) {
+  const card = document.createElement('div');
+  card.className = 'zona-card';
+  const estado = estadoZona(zona.cobertura, zona.tieneEvento);
+  if (estado === 'iluminada') card.classList.add('iluminada');
+  else if (estado === 'critica') card.classList.add('critica');
+
+  card.innerHTML =
+    '<div class="zona-header">' +
+      '<span class="zona-nombre">ZONA ' + zona.nombre.toUpperCase() + '</span>' +
+      '<div class="zona-led ' + estado + '"></div>' +
+    '</div>' +
+    '<div class="zona-info">' +
+      '<span>Cobertura<strong class="zona-cobertura">' + Math.round(zona.cobertura) + '%</strong></span>' +
+      (zona.tieneEvento ? '<span style="color: var(--warn);">⚡ Evento activo</span>' : '<span>—</span>') +
+    '</div>' +
+    '<div class="zona-slider-row">' +
+      '<input type="range" min="0" max="100" value="' + zona.slider + '" class="zona-slider" data-zona="' + zona.nombre + '">' +
+      '<span class="zona-slider-pct">' + zona.slider + '%</span>' +
+    '</div>' +
+    '<button class="btn-gen ' + (zona.genActivo ? 'activo' : '') + '" data-zona="' + zona.nombre + '"' +
+      (zona.genActivo ? ' disabled' : '') + '>' +
+      (zona.genActivo ? 'GENERADOR ACTIVO' : 'ACTIVAR GENERADOR') +
+    '</button>';
+
+  // Slider: mientras se mueve, rebalancear los otros 3 para que sumen 100
+  const slider = card.querySelector('.zona-slider');
+  const pctSpan = card.querySelector('.zona-slider-pct');
+  slider.oninput = function () {
+    rebalancearSliders(this.dataset.zona, parseInt(this.value, 10));
+  };
+  slider.onchange = function () {
+    enviarSlidersAlBackend();
+  };
+
+  // Botón generador
+  const btn = card.querySelector('.btn-gen');
+  btn.onclick = async function () {
+    this.disabled = true;
+    this.textContent = 'Activando...';
+    try {
+      const r = await fetch('/vientos-sin-fronteras/AccionServlet?accion=activar_gen&zona=' +
+        encodeURIComponent(this.dataset.zona), { method: 'POST' });
+      const d = await r.json();
+      if (!d.ok) {
+        alert(d.error || 'No se pudo activar');
+      }
+    } catch (e) {
+      alert('Error de conexión');
+    }
+    // Sea éxito o error, dejamos que refrescar() reconstruya el botón con el estado real de la BD.
+    refrescar();
+  };
+
+  return card;
+}
+
+function rebalancearSliders(zonaModificada, nuevoValor) {
+  // Toma el slider modificado, ajusta los otros 3 proporcionalmente para sumar 100%.
+  const allSliders = document.querySelectorAll('.zona-slider');
+  if (allSliders.length !== 4) return;
+
+  const otros = [];
+  allSliders.forEach(function (s) {
+    if (s.dataset.zona !== zonaModificada) otros.push(s);
+  });
+
+  // % que sobra para repartir entre los otros 3
+  const restante = 100 - nuevoValor;
+
+  // Suma actual de los otros 3
+  let sumaOtros = 0;
+  otros.forEach(function (s) { sumaOtros += parseInt(s.value, 10); });
+
+  // Repartir proporcionalmente
+  if (sumaOtros > 0) {
+    otros.forEach(function (s) {
+      const proporcion = parseInt(s.value, 10) / sumaOtros;
+      s.value = Math.round(proporcion * restante);
+      s.parentElement.querySelector('.zona-slider-pct').textContent = s.value + '%';
+    });
+  } else {
+    // Si los otros estaban en 0, dividir parejo
+    const c = Math.floor(restante / 3);
+    otros.forEach(function (s, i) {
+      s.value = i === 0 ? (restante - c * 2) : c;
+      s.parentElement.querySelector('.zona-slider-pct').textContent = s.value + '%';
+    });
+  }
+
+  // Actualizar también el del modificado
+  const modificado = document.querySelector('.zona-slider[data-zona="' + zonaModificada + '"]');
+  if (modificado) {
+    modificado.value = nuevoValor;
+    modificado.parentElement.querySelector('.zona-slider-pct').textContent = nuevoValor + '%';
+  }
+}
+
+async function enviarSlidersAlBackend() {
+  // Manda los 4 valores al backend
+  const sliders = document.querySelectorAll('.zona-slider');
+  for (const s of sliders) {
+    await fetch('/vientos-sin-fronteras/AccionServlet?accion=mover_slider&zona=' +
+      encodeURIComponent(s.dataset.zona) + '&valor=' + s.value, { method: 'POST' });
+  }
+}
+
+function actualizarGensVisuales(restantes) {
+  // restantes = cantidad de generadores que QUEDAN (no usados).
+  // GEN-1 es el primero que se "gasta", GEN-3 el último.
+  // Si restantes=3, ninguno gastado. Si restantes=0, los 3 gastados.
+  const items = document.querySelectorAll('#gens-row .gen-item');
+  items.forEach(function (el, i) {
+    const usados = 3 - restantes;
+    el.classList.toggle('gastado', i < usados);
+  });
+}
+
+function actualizarBateria(valor) {
+  const v = Math.max(0, Math.min(100, valor));
+  document.getElementById('bateria-valor').textContent = Math.round(v);
+  // El fill va de y=151 (vacío) hasta y=14 (lleno), altura 137 px usables
+  const altura = (v / 100) * 137;
+  const y = 151 - altura;
+  const fill = document.getElementById('bateria-fill');
+  fill.setAttribute('y', y);
+  fill.setAttribute('height', altura);
+  // Color según nivel
+  if (v < 20) fill.setAttribute('fill', 'var(--danger)');
+  else if (v < 50) fill.setAttribute('fill', 'var(--warn)');
+  else fill.setAttribute('fill', 'var(--aero)');
+}
+
+async function refrescar() {
+  try {
+    const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
+    const e = await r.json();
+
+    document.getElementById('puntaje').textContent = e.puntaje;
+    document.getElementById('tiempo-restante').textContent = e.tiempoRestante;
+    document.getElementById('estado-actual').textContent = e.estado;
+
+    if (!e.distribuidor) return;
+
+    actualizarBateria(e.distribuidor.bateria);
+    actualizarGensVisuales(e.distribuidor.generadoresRestantes !== undefined ? e.distribuidor.generadoresRestantes : 3);
+
+    // Pintar zonas en el mapa y mostrar marcador de generador
+    e.distribuidor.zonas.forEach(function (z) {
+      const est = estadoZona(z.cobertura, z.tieneEvento);
+      pintarZonaEnMapa(z.nombre, est);
+
+      const marker = document.getElementById('gen-marker-' + z.nombre);
+      if (marker) marker.style.display = z.genActivo ? 'block' : 'none';
+    });
+
+    const panel = document.getElementById('zonas-panel');
+    if (panel.children.length === 0) {
+      // Primera render: crear las 4 cards
+      e.distribuidor.zonas.forEach(function (z) {
+        const card = renderCardZona(z);
+        card.setAttribute('data-zona', z.nombre);
+        panel.appendChild(card);
+      });
+    } else {
+      // Refrescos: actualizar solo lo dinámico sin recrear (para no pisar el slider en uso)
+      e.distribuidor.zonas.forEach(function (z) {
+        const card = panel.querySelector('.zona-card[data-zona="' + z.nombre + '"]');
+        if (!card) return;
+
+        const est = estadoZona(z.cobertura, z.tieneEvento);
+        const cob = card.querySelector('.zona-cobertura');
+        if (cob) cob.textContent = Math.round(z.cobertura) + '%';
+        const led = card.querySelector('.zona-led');
+        if (led) led.className = 'zona-led ' + est;
+
+        // Actualizar borde de la card
+        card.classList.remove('iluminada', 'critica');
+        if (est === 'iluminada') card.classList.add('iluminada');
+        else if (est === 'critica') card.classList.add('critica');
+
+        // Si el generador cambió de estado, actualizar el botón
+        const btn = card.querySelector('.btn-gen');
+        if (btn) {
+          if (z.genActivo) {
+            btn.classList.add('activo');
+            btn.disabled = true;
+            btn.textContent = 'GENERADOR ACTIVO';
+          } else {
+            btn.classList.remove('activo');
+            btn.disabled = false;
+            btn.textContent = 'ACTIVAR GENERADOR';
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error('refrescar falló:', err);
+  }
+}
+
+refrescar();
+setInterval(refrescar, 1000);
+</script>
+</body>
+</html>

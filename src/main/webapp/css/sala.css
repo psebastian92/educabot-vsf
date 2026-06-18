@@ -1,0 +1,325 @@
+:root {
+	--bg: #0d0f1a;
+	--surface: #151828;
+	--surface2: #1c2035;
+	--border: rgba(255, 255, 255, 0.08);
+	--text: #e8eaf0;
+	--muted: #7a80a0;
+	--accent: #4f8ef7;
+	--verde: #5DCAA5;
+	--rol-panel: #378ADD;
+	--rol-aero: #5DCAA5;
+	--rol-tecnico: #F09997;
+	--rol-prog: #EF9F27;
+	--rol-dist: #BA7517;
+	--danger: #E24B4A;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'Space Grotesk', sans-serif;
+	background: var(--bg);
+	color: var(--text);
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 40px 20px;
+}
+
+.btn-logout {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	font-size: 12px;
+	color: var(--muted);
+	text-decoration: none;
+	border: 1px solid var(--border);
+	padding: 4px 10px;
+	border-radius: 6px;
+	transition: all 0.2s;
+}
+
+.btn-logout:hover {
+	color: var(--text);
+	border-color: var(--muted);
+}
+
+.logo {
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	letter-spacing: 3px;
+	color: var(--accent);
+	border: 1px solid var(--accent);
+	padding: 4px 10px;
+	border-radius: 4px;
+	margin-bottom: 24px;
+}
+
+h1 {
+	font-family: 'Space Mono', monospace;
+	font-size: 20px;
+	margin-bottom: 8px;
+}
+
+.subtitulo {
+	font-size: 13px;
+	color: var(--muted);
+	margin-bottom: 30px;
+}
+
+.jugadoras-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 12px;
+	width: 100%;
+	max-width: 800px;
+	margin-bottom: 20px;
+}
+
+.jugadora-card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 16px 12px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	transition: border-color 0.3s;
+}
+
+.jugadora-card.conectada {
+	border-color: var(--verde);
+}
+
+.avatar {
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	background: var(--surface2);
+	border: 2px solid var(--border);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Space Mono', monospace;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--muted);
+	transition: border-color 0.3s, color 0.3s;
+}
+
+.jugadora-card.conectada .avatar {
+	border-color: var(--verde);
+	color: var(--verde);
+}
+
+.jugadora-nombre {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.estado {
+	font-size: 10px;
+	font-family: 'Space Mono', monospace;
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.estado.online {
+	background: rgba(93, 202, 165, 0.15);
+	color: var(--verde);
+}
+
+.estado.offline {
+	background: rgba(122, 128, 160, 0.1);
+	color: var(--muted);
+}
+
+.rol-tag {
+	font-size: 10px;
+	font-family: 'Space Mono', monospace;
+	color: var(--accent);
+	background: rgba(79, 142, 247, 0.1);
+	padding: 2px 8px;
+	border-radius: 10px;
+}
+
+.contador {
+	font-size: 13px;
+	color: var(--muted);
+	margin-bottom: 30px;
+}
+
+.contador span {
+	font-family: 'Space Mono', monospace;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.vos-tag {
+	font-size: 10px;
+	color: var(--accent);
+	font-family: 'Space Mono', monospace;
+}
+
+/* ===== Sección de roles ===== */
+.roles-section {
+	width: 100%;
+	max-width: 1000px;
+	margin-top: 20px;
+	padding-top: 30px;
+	border-top: 1px solid var(--border);
+}
+
+.roles-titulo {
+	font-family: 'Space Mono', monospace;
+	font-size: 18px;
+	text-align: center;
+	margin-bottom: 8px;
+}
+
+.roles-subtitulo {
+	font-size: 12px;
+	color: var(--muted);
+	text-align: center;
+	margin-bottom: 24px;
+}
+
+.roles-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 14px;
+	margin-bottom: 30px;
+}
+
+.rol-card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 18px 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	text-align: center;
+	transition: all 0.25s;
+	position: relative;
+}
+
+.rol-card[data-color="panel"]   { border-top: 3px solid var(--rol-panel); }
+.rol-card[data-color="aero"]    { border-top: 3px solid var(--rol-aero); }
+.rol-card[data-color="tecnico"] { border-top: 3px solid var(--rol-tecnico); }
+.rol-card[data-color="prog"]    { border-top: 3px solid var(--rol-prog); }
+.rol-card[data-color="dist"]    { border-top: 3px solid var(--rol-dist); }
+
+.rol-card.mi-rol {
+	box-shadow: 0 0 0 2px var(--verde);
+}
+.rol-card.tomado {
+	opacity: 0.55;
+}
+
+.rol-icono {
+	font-size: 30px;
+	line-height: 1;
+}
+
+.rol-nombre {
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+}
+.rol-card[data-color="panel"] .rol-nombre   { color: var(--rol-panel); }
+.rol-card[data-color="aero"] .rol-nombre    { color: var(--rol-aero); }
+.rol-card[data-color="tecnico"] .rol-nombre { color: var(--rol-tecnico); }
+.rol-card[data-color="prog"] .rol-nombre    { color: var(--rol-prog); }
+.rol-card[data-color="dist"] .rol-nombre    { color: var(--rol-dist); }
+
+.rol-descripcion {
+	font-size: 11px;
+	color: var(--muted);
+	line-height: 1.4;
+	min-height: 44px;
+}
+
+.rol-elegido-por {
+	font-size: 11px;
+	font-family: 'Space Mono', monospace;
+	color: var(--muted);
+	min-height: 16px;
+}
+
+.rol-elegido-por.tomado {
+	color: var(--danger);
+}
+
+.rol-elegido-por.tuyo {
+	color: var(--verde);
+	font-weight: 700;
+}
+
+.btn-elegir-rol {
+	width: 100%;
+	background: transparent;
+	border: 1px solid var(--border);
+	color: var(--text);
+	padding: 8px;
+	font-family: 'Space Grotesk', sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.rol-card[data-color="panel"] .btn-elegir-rol:hover:not(:disabled)   { border-color: var(--rol-panel); color: var(--rol-panel); }
+.rol-card[data-color="aero"] .btn-elegir-rol:hover:not(:disabled)    { border-color: var(--rol-aero); color: var(--rol-aero); }
+.rol-card[data-color="tecnico"] .btn-elegir-rol:hover:not(:disabled) { border-color: var(--rol-tecnico); color: var(--rol-tecnico); }
+.rol-card[data-color="prog"] .btn-elegir-rol:hover:not(:disabled)    { border-color: var(--rol-prog); color: var(--rol-prog); }
+.rol-card[data-color="dist"] .btn-elegir-rol:hover:not(:disabled)    { border-color: var(--rol-dist); color: var(--rol-dist); }
+
+.btn-elegir-rol:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.btn-elegir-rol.tuyo {
+	background: var(--verde);
+	color: #0a1614;
+	border-color: var(--verde);
+}
+
+.acciones-finales {
+	text-align: center;
+}
+
+.btn-jugar {
+	background: var(--accent);
+	color: white;
+	border: none;
+	border-radius: 10px;
+	padding: 14px 40px;
+	font-size: 15px;
+	font-family: 'Space Grotesk', sans-serif;
+	font-weight: 600;
+	cursor: pointer;
+	opacity: 0.3;
+	pointer-events: none;
+	transition: opacity 0.3s;
+}
+
+.btn-jugar.habilitado {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.btn-jugar.habilitado:hover {
+	opacity: 0.85;
+}

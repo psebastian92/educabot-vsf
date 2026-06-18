@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aerogenerador — Entrenamiento ML</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+<style>
+:root {
+  --bg: #0d0f1a;
+  --surface: #151828;
+  --surface2: #1c2035;
+  --border: rgba(255,255,255,0.08);
+  --text: #e8eaf0;
+  --muted: #7a80a0;
+  --aero: #5DCAA5;
+  --aero-dim: rgba(93,202,165,0.15);
+  --warn: #EF9F27;
+  --err: #F09595;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+.header {
+  padding: 24px 20px 0;
+  display: flex; align-items: center; gap: 16px;
+  max-width: 920px; margin: 0 auto;
+}
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 2px;
+  color: var(--aero);
+  border: 1px solid var(--aero);
+  padding: 4px 8px; border-radius: 4px;
+  white-space: nowrap;
+}
+.header-title { font-size: 13px; color: var(--muted); }
+
+h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 22px; text-align: center;
+  padding: 20px 20px 6px;
+}
+.subtitulo {
+  text-align: center; font-size: 13px;
+  color: var(--muted); margin-bottom: 28px;
+  padding: 0 20px;
+}
+
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+
+.status-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.status-dot.ok { background: var(--aero); box-shadow: 0 0 8px var(--aero); }
+.status-dot.warn { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+.status-dot.err { background: var(--err); box-shadow: 0 0 8px var(--err); }
+#status-text { color: var(--text); }
+#status-help { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+}
+@media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 13px; font-weight: 600;
+  color: var(--aero);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#video-container {
+  width: 100%; aspect-ratio: 4/3;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+}
+#video-container video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.camera-placeholder {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+  color: var(--muted); font-size: 12px; text-align: center;
+  padding: 20px;
+}
+
+.gesto-card {
+  border-left: 3px solid var(--aero);
+  margin-bottom: 12px;
+}
+.input-clase {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin-bottom: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+}
+.input-clase::placeholder { color: var(--muted); }
+.input-clase:focus { outline: none; border-color: var(--aero); }
+.gesto-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.gesto-nombre {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700;
+}
+.gesto-count {
+  font-size: 12px; color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+.gesto-count.tiene-muestras { color: var(--aero); }
+
+button {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 13px;
+  border: none; border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+.btn-muestra {
+  background: var(--aero-dim);
+  color: var(--aero);
+  width: 100%;
+}
+.btn-muestra:hover:not(:disabled) { background: rgba(93,202,165,0.25); }
+
+.btn-principal {
+  background: var(--aero);
+  color: #0d0f1a;
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 14px;
+}
+.btn-principal:hover:not(:disabled) { opacity: 0.88; }
+
+.btn-secundario {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  width: 100%;
+}
+.btn-secundario:hover:not(:disabled) { border-color: var(--muted); }
+
+.thumbs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 10px;
+}
+.thumb-wrapper {
+  position: relative;
+  width: 40px; height: 30px;
+  flex-shrink: 0;
+}
+.thumb-wrapper img {
+  width: 40px; height: 30px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  display: block;
+}
+.thumb-delete {
+  position: absolute;
+  top: -6px; right: -6px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--err);
+  color: #0d0f1a;
+  font-size: 11px; font-weight: 700;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; border: none;
+  cursor: pointer;
+}
+.thumb-delete:hover { opacity: 0.8; }
+
+.pasos {
+  list-style: none;
+  counter-reset: paso;
+  font-size: 12px; color: var(--muted);
+  line-height: 1.8;
+}
+.pasos li {
+  counter-increment: paso;
+  padding-left: 22px;
+  position: relative;
+}
+.pasos li::before {
+  content: counter(paso);
+  position: absolute; left: 0; top: 1px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pasos li.hecho { color: var(--text); }
+.pasos li.hecho::before { background: var(--aero); color: #0d0f1a; }
+
+.highlight {
+  background: var(--surface2);
+  border-left: 3px solid var(--aero);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 12px; line-height: 1.6;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.reconocimiento {
+  text-align: center;
+  padding: 24px 20px;
+}
+.reco-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.reco-row-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  width: 90px; flex-shrink: 0;
+  text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reco-row-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; color: var(--muted);
+  width: 38px; flex-shrink: 0; text-align: right;
+}
+.reconocimiento-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  color: var(--muted);
+  transition: color 0.2s;
+  margin-bottom: 8px;
+}
+.reconocimiento-label.activo { color: var(--aero); }
+.reconocimiento-label.no-reconocido { color: var(--err); }
+.confianza-bar {
+  height: 6px; background: var(--surface2);
+  border-radius: 3px; overflow: hidden;
+  margin: 0 auto 6px; max-width: 280px;
+}
+.reco-row .confianza-bar {
+  flex: 1; margin: 0; max-width: none;
+}
+.confianza-fill {
+  height: 100%; background: var(--aero);
+  width: 0%; transition: width 0.2s, background 0.2s;
+}
+.confianza-texto { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+.export-banner {
+  display: none;
+  background: var(--aero-dim);
+  border: 1px solid var(--aero);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: center;
+  margin-top: 16px;
+}
+.export-banner.visible { display: block; }
+.export-banner strong { color: var(--aero); display: block; margin-bottom: 4px; }
+.export-banner p { font-size: 12px; color: var(--muted); }
+
+.loss-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--muted);
+  text-align: center; margin-top: 8px;
+  min-height: 14px;
+}
+
+/* ===== PANTALLA DE CONTROL ===== */
+.control-header {
+  max-width: 1100px; margin: 16px auto 20px;
+  padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+}
+.control-paso {
+  background: linear-gradient(90deg, rgba(175,169,236,0.18), rgba(175,169,236,0.04));
+  border-left: 3px solid #AFA9EC;
+  padding: 12px 18px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #AFA9EC;
+  flex: 1;
+  border-radius: 4px;
+}
+.btn-finalizar {
+  background: #6f5fc7;
+  color: white;
+  font-weight: 600; font-size: 13px;
+  padding: 12px 22px;
+  border: none; border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.btn-finalizar:hover { opacity: 0.88; }
+.btn-finalizar:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== PANTALLA INTERMEDIA: SIMULACIÓN PROGRAMADOR ===== */
+.prog-wrap {
+  max-width: 720px; margin: 20px auto;
+  padding: 0 20px;
+}
+.prog-aviso {
+  background: rgba(239, 159, 39, 0.08);
+  border: 1px solid rgba(239, 159, 39, 0.3);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 28px;
+}
+.prog-aviso-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; font-weight: 700;
+  color: var(--warn);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.prog-aviso p {
+  font-size: 13px; color: var(--text);
+  line-height: 1.6;
+}
+.prog-aviso strong {
+  color: var(--warn);
+}
+.prog-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.prog-subtitulo {
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 20px;
+}
+.prog-config {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.prog-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.prog-row-gesto {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700;
+  color: var(--aero);
+  min-width: 120px;
+}
+.prog-row-flecha {
+  color: var(--muted); font-size: 14px;
+}
+.prog-row-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  flex: 1;
+}
+.prog-row-select:focus { outline: none; border-color: var(--aero); }
+
+.control-layout {
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 820px) { .control-layout { grid-template-columns: 1fr; } }
+
+.control-camara-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+#control-video-container {
+  width: 100%; aspect-ratio: 4/3;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+#control-video-container video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.control-barras {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.control-feedback {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.feedback-icono {
+  font-size: 32px;
+  transition: transform 0.2s;
+}
+.feedback-icono.detectando { transform: scale(1.2); }
+.feedback-texto {
+  font-size: 13px; color: var(--muted);
+}
+.feedback-texto strong {
+  color: var(--aero);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+}
+
+.control-aero-card {
+  background: #1a3024;
+  border: 1px solid rgba(93,202,165,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.aero-svg {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+}
+.rosa-letra {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px; font-weight: 700;
+  fill: rgba(93,202,165,0.55);
+  transition: fill 0.25s;
+}
+.rosa-letra-activa {
+  fill: var(--aero);
+  filter: drop-shadow(0 0 6px rgba(93,202,165,0.7));
+}
+#aero-grupo {
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: 200px 200px;
+}
+
+.aero-info {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(93,202,165,0.15);
+  background: rgba(0,0,0,0.2);
+}
+.aero-orientacion {
+  font-size: 13px; color: var(--muted);
+  margin-bottom: 4px;
+}
+.aero-orientacion strong {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; color: var(--aero);
+  margin-left: 6px;
+}
+.aero-hint {
+  font-size: 11px; color: var(--muted);
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">COPA ROBÓTICA · 2026</div>
+  <div class="header-title">Vientos sin fronteras — Prototipo Aerogenerador</div>
+</div>
+
+<div class="pantalla pantalla-entrenamiento" id="pantalla-entrenamiento">
+
+<h1>💨 Entrenamiento del modelo</h1>
+<p class="subtitulo">Prueba de cámara + reconocimiento de gestos, antes de integrarlo al simulador completo.</p>
+
+<div class="wrap">
+
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div>
+      <div id="status-text">Cargando modelo base (MobileNet)...</div>
+      <div id="status-help"></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <div>
+      <div class="card" style="padding:10px;">
+        <div id="video-container">
+          <div class="camera-placeholder" id="camera-placeholder">
+            Esperando permiso de cámara del navegador...
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Pasos</h3>
+        <ul class="pasos" id="pasos">
+          <li id="paso-1">Permitir la cámara</li>
+          <li id="paso-2">Tomar 1 o 2 muestras de Gesto 1 y de Gesto 2</li>
+          <li id="paso-3">Entrenar el modelo</li>
+          <li id="paso-4">Evaluar que reconoce bien</li>
+          <li id="paso-5">Exportar modelo</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card gesto-card">
+        <div class="gesto-header">
+          <span class="gesto-nombre">GESTO 1</span>
+          <span class="gesto-count" id="count-1">0 muestras</span>
+        </div>
+        <input type="text" class="input-clase" id="nombre-1" placeholder='Nombrar la clase (ej: "izquierda")'>
+        <button class="btn-muestra" id="btn-muestra-1" disabled>Tomar muestra</button>
+        <div class="thumbs" id="thumbs-1"></div>
+      </div>
+
+      <div class="card gesto-card">
+        <div class="gesto-header">
+          <span class="gesto-nombre">GESTO 2</span>
+          <span class="gesto-count" id="count-2">0 muestras</span>
+        </div>
+        <input type="text" class="input-clase" id="nombre-2" placeholder='Nombrar la clase (ej: "derecha")'>
+        <button class="btn-muestra" id="btn-muestra-2" disabled>Tomar muestra</button>
+        <div class="thumbs" id="thumbs-2"></div>
+      </div>
+
+      <div class="highlight">
+        El juego real no te dice qué gesto es "izquierda" y cuál es "derecha" — lo definen ustedes (nombrando la clase) y se lo comunican al Programador antes de que configure el bloque ML.
+      </div>
+
+      <button class="btn-principal" id="btn-entrenar" disabled style="margin-top:16px;">Entrenar modelo</button>
+      <div class="loss-text" id="loss-text"></div>
+
+      <div class="card reconocimiento" id="card-reconocimiento" style="display:none; margin-top:16px;">
+        <h3 style="text-align:left">Reconocimiento en vivo — las dos clases a la vez</h3>
+
+        <div class="reco-row">
+          <span class="reco-row-label" id="reco-row-label-1">Gesto 1</span>
+          <div class="confianza-bar"><div class="confianza-fill" id="reco-bar-1"></div></div>
+          <span class="reco-row-pct" id="reco-pct-1">—</span>
+        </div>
+        <div class="reco-row">
+          <span class="reco-row-label" id="reco-row-label-2">Gesto 2</span>
+          <div class="confianza-bar"><div class="confianza-fill" id="reco-bar-2"></div></div>
+          <span class="reco-row-pct" id="reco-pct-2">—</span>
+        </div>
+
+        <div class="reconocimiento-label" id="reco-label" style="margin-top:14px;">—</div>
+      </div>
+
+      <button class="btn-secundario" id="btn-exportar" disabled style="margin-top:12px;">Exportar modelo</button>
+
+      <div class="export-banner" id="export-banner">
+        <strong>✅ Modelo exportado</strong>
+        <p>Avisale al Programador qué gesto corresponde a cada orientación antes de que configure el bloque ML del aerogenerador.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /pantalla-entrenamiento -->
+
+<!-- ============== PANTALLA INTERMEDIA: SIMULACIÓN PROGRAMADOR ============== -->
+<div class="pantalla pantalla-programador" id="pantalla-programador" style="display:none;">
+  <div class="prog-wrap">
+    <div class="prog-aviso">
+      <div class="prog-aviso-titulo">⚙️ Paso intermedio del prototipo</div>
+      <p>En el juego real, después de exportar el modelo le decís verbalmente al <strong>Programador</strong> qué pose entrenaste y él arma sus bloques para asignar cada gesto a una dirección. Acá lo simulamos en pantalla porque todavía no integramos los 5 roles.</p>
+    </div>
+
+    <h2 class="prog-titulo">Configurar dirección de cada gesto</h2>
+    <p class="prog-subtitulo">Esto es lo que estaría haciendo el Programador con sus bloques visuales:</p>
+
+    <div class="prog-config" id="prog-config">
+      <!-- Se llena en JS según los nombres reales -->
+    </div>
+
+    <button class="btn-finalizar" id="btn-confirmar-prog" style="margin-top:24px;">Confirmar y pasar a Control</button>
+  </div>
+</div>
+
+<!-- ============== PANTALLA DE CONTROL ============== -->
+<div class="pantalla pantalla-control" id="pantalla-control" style="display:none;">
+
+  <div class="control-header">
+    <div class="control-paso">PASO 3: FINALIZAR ENTRENAMIENTO</div>
+    <button class="btn-finalizar" id="btn-finalizar">Finalizar entrenamiento</button>
+  </div>
+
+  <div class="control-layout">
+
+    <!-- Cámara + reconocimiento (izquierda) -->
+    <div class="control-camara-card">
+      <div id="control-video-container"></div>
+      <div class="control-barras">
+        <div class="reco-row">
+          <span class="reco-row-label" id="ctrl-row-label-1">Gesto 1</span>
+          <div class="confianza-bar"><div class="confianza-fill" id="ctrl-bar-1"></div></div>
+          <span class="reco-row-pct" id="ctrl-pct-1">0%</span>
+        </div>
+        <div class="reco-row">
+          <span class="reco-row-label" id="ctrl-row-label-2">Gesto 2</span>
+          <div class="confianza-bar"><div class="confianza-fill" id="ctrl-bar-2"></div></div>
+          <span class="reco-row-pct" id="ctrl-pct-2">0%</span>
+        </div>
+      </div>
+      <div class="control-feedback" id="control-feedback">
+        <div class="feedback-icono" id="feedback-icono">✋</div>
+        <div class="feedback-texto" id="feedback-texto">Hacé un gesto para girar el aerogenerador.</div>
+      </div>
+    </div>
+
+    <!-- Aerogenerador (derecha) -->
+    <div class="control-aero-card">
+      <svg viewBox="0 0 400 400" class="aero-svg" id="aero-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="400" height="400" fill="url(#grid)"/>
+
+        <!-- Letras de la rosa de los vientos -->
+        <text x="200" y="38" text-anchor="middle" class="rosa-letra rosa-letra-activa" id="rosa-N">N</text>
+        <text x="318" y="86"  text-anchor="middle" class="rosa-letra" id="rosa-NE">NE</text>
+        <text x="370" y="206" text-anchor="middle" class="rosa-letra" id="rosa-E">E</text>
+        <text x="318" y="326" text-anchor="middle" class="rosa-letra" id="rosa-SE">SE</text>
+        <text x="200" y="375" text-anchor="middle" class="rosa-letra" id="rosa-S">S</text>
+        <text x="82"  y="326" text-anchor="middle" class="rosa-letra" id="rosa-SO">SO</text>
+        <text x="30"  y="206" text-anchor="middle" class="rosa-letra" id="rosa-O">O</text>
+        <text x="82"  y="86"  text-anchor="middle" class="rosa-letra" id="rosa-NO">NO</text>
+
+        <!-- Aerogenerador en vista cenital — apunta al N por defecto -->
+        <g id="aero-grupo" transform="rotate(0 200 200)">
+          <!-- Cuerpo principal (nacelle + cola alargada como un avión, marcando dirección) -->
+          <ellipse cx="200" cy="200" rx="10" ry="50" fill="rgba(255,255,255,0.78)"/>
+          <!-- Punta indicadora hacia el N -->
+          <circle cx="200" cy="158" r="5" fill="var(--aero)"/>
+          <!-- Aspas centrales perpendiculares al eje -->
+          <ellipse cx="200" cy="200" rx="50" ry="5" fill="rgba(255,255,255,0.55)"/>
+          <!-- Hub -->
+          <circle cx="200" cy="200" r="7" fill="rgba(255,255,255,0.95)"/>
+        </g>
+      </svg>
+
+      <div class="aero-info">
+        <div class="aero-orientacion">Orientación: <strong id="aero-orientacion-txt">N</strong></div>
+        <div class="aero-hint" id="aero-hint">Hacé el gesto entrenado para girar.</div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /pantalla-control -->
+
+<script>
+let video;
+let featureExtractor;
+let classifier;
+let sampleIdCounter = 0;
+let samplesData = { 1: [], 2: [] }; // cada item: {id, canvas}
+let modeloEntrenado = false;
+let reconociendo = false;
+let cameraTimeoutId;
+
+function setStatus(text, help, level) {
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-help').textContent = help || '';
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot' + (level ? ' ' + level : '');
+}
+
+function marcarPaso(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('hecho');
+}
+
+function setup() {
+  noCanvas();
+
+  cameraTimeoutId = setTimeout(function () {
+    setStatus(
+      'No se detectó la cámara después de varios segundos.',
+      'Revisá el ícono de cámara en la barra de direcciones del navegador (no en la configuración de Windows) — fue justo lo que trabó el partido de práctica.',
+      'err'
+    );
+  }, 8000);
+
+  video = createCapture(VIDEO, function () {
+    clearTimeout(cameraTimeoutId);
+    document.getElementById('camera-placeholder').style.display = 'none';
+    marcarPaso('paso-1');
+    setStatus('Cámara conectada. Cargando modelo base...', '', 'ok');
+  });
+  video.size(320, 240);
+  video.parent('video-container');
+
+  featureExtractor = ml5.featureExtractor('MobileNet', function () {
+    clearTimeout(cameraTimeoutId);
+    setStatus('Listo. Tomá las muestras de cada gesto.', '', 'ok');
+    document.getElementById('btn-muestra-1').disabled = false;
+    document.getElementById('btn-muestra-2').disabled = false;
+  });
+}
+
+function invalidarEntrenamiento(mensaje) {
+  if (!modeloEntrenado) return;
+  modeloEntrenado = false;
+  reconociendo = false;
+  document.getElementById('card-reconocimiento').style.display = 'none';
+  document.getElementById('btn-exportar').disabled = true;
+  document.getElementById('export-banner').classList.remove('visible');
+  document.getElementById('btn-entrenar').textContent = 'Entrenar modelo';
+  document.getElementById('loss-text').textContent = '';
+  setStatus(mensaje || 'Cambiaste las muestras — volvé a entrenar el modelo.', '', 'warn');
+}
+
+function actualizarContador(gesto) {
+  const n = samplesData[gesto].length;
+  const el = document.getElementById('count-' + gesto);
+  el.textContent = n + ' muestra' + (n === 1 ? '' : 's');
+  el.classList.toggle('tiene-muestras', n > 0);
+}
+
+function actualizarBotonEntrenar() {
+  const listo = samplesData[1].length >= 1 && samplesData[2].length >= 1;
+  document.getElementById('btn-entrenar').disabled = !listo;
+  if (listo) marcarPaso('paso-2');
+}
+
+function renderThumbs(gesto) {
+  const container = document.getElementById('thumbs-' + gesto);
+  container.innerHTML = '';
+  samplesData[gesto].forEach(function (sample) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'thumb-wrapper';
+
+    wrapper.appendChild(sample.img);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'thumb-delete';
+    delBtn.textContent = '×';
+    delBtn.title = 'Eliminar muestra';
+    delBtn.onclick = function () { eliminarMuestra(gesto, sample.id); };
+    wrapper.appendChild(delBtn);
+
+    container.appendChild(wrapper);
+  });
+}
+
+function capturarMuestra(gesto) {
+  if (!video) return;
+  const w = video.elt.videoWidth || 320;
+  const h = video.elt.videoHeight || 240;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.translate(w, 0); ctx.scale(-1, 1);
+  ctx.drawImage(video.elt, 0, 0, w, h);
+
+  // classifier.addImage() solo reconoce elementos <img> reales (así lo usa
+  // la propia documentación de ml5) — un <canvas> crudo se ignora en silencio.
+  const img = document.createElement('img');
+  img.src = canvas.toDataURL();
+
+  samplesData[gesto].push({ id: ++sampleIdCounter, img: img });
+
+  renderThumbs(gesto);
+  actualizarContador(gesto);
+  actualizarBotonEntrenar();
+  invalidarEntrenamiento('Agregaste una muestra nueva — volvé a entrenar el modelo.');
+}
+
+function eliminarMuestra(gesto, id) {
+  samplesData[gesto] = samplesData[gesto].filter(function (s) { return s.id !== id; });
+  renderThumbs(gesto);
+  actualizarContador(gesto);
+  actualizarBotonEntrenar();
+  invalidarEntrenamiento('Borraste una muestra — volvé a entrenar el modelo.');
+}
+
+function obtenerNombreClase(gesto) {
+  const val = document.getElementById('nombre-' + gesto).value.trim();
+  return val || ('Gesto ' + gesto);
+}
+
+function bloquearEdicion(bloqueado) {
+  document.getElementById('btn-muestra-1').disabled = bloqueado;
+  document.getElementById('btn-muestra-2').disabled = bloqueado;
+  document.querySelectorAll('.thumb-delete').forEach(function (b) {
+    b.style.visibility = bloqueado ? 'hidden' : 'visible';
+  });
+}
+
+document.getElementById('btn-muestra-1').onclick = function () { capturarMuestra(1); };
+document.getElementById('btn-muestra-2').onclick = function () { capturarMuestra(2); };
+
+document.getElementById('btn-entrenar').onclick = function () {
+  this.disabled = true;
+  this.textContent = 'Preparando...';
+  bloquearEdicion(true);
+  setStatus('Preparando el clasificador...', '', 'warn');
+
+  let epochCount = 0;
+  let finalizado = false;
+  const MAX_EPOCHS_ESPERADAS = 30;
+
+  const timeoutDiagnostico = setTimeout(function () {
+    if (finalizado) return;
+    setStatus(
+      'El entrenamiento no responde después de 15 segundos.',
+      'Abrí la consola del navegador (F12 → Console) y pasame el texto en rojo que aparezca.',
+      'err'
+    );
+  }, 15000);
+
+  function entrenamientoCompleto() {
+    if (finalizado) return;
+    finalizado = true;
+    clearTimeout(timeoutDiagnostico);
+    modeloEntrenado = true;
+    bloquearEdicion(false);
+    marcarPaso('paso-3');
+    document.getElementById('loss-text').textContent = 'entrenamiento completo';
+    document.getElementById('btn-entrenar').textContent = 'Modelo entrenado ✓';
+    setStatus('Modelo entrenado. Evaluá que reconozca bien antes de exportar.', '', 'ok');
+    document.getElementById('card-reconocimiento').style.display = 'block';
+    document.getElementById('btn-exportar').disabled = false;
+    reconociendo = true;
+    reconocerLoop();
+  }
+
+  // Clasificador nuevo en cada entrenamiento: así lo que borraste no queda
+  // "fantasma" adentro, y lo que agregaste sí se suma sin duplicar lo anterior.
+  // Esperamos el callback de "video listo" antes de cargar las imágenes,
+  // y además esperamos la confirmación de CADA addImage (es asíncrono) antes
+  // de entrenar — si no, train() arranca con el set de ejemplos todavía vacío.
+  classifier = featureExtractor.classification(video, function () {
+    const todas = [];
+    samplesData[1].forEach(function (s) { todas.push({ img: s.img, label: 'gesto1' }); });
+    samplesData[2].forEach(function (s) { todas.push({ img: s.img, label: 'gesto2' }); });
+
+    let pendientes = todas.length;
+
+    function arrancarEntrenamiento() {
+      document.getElementById('btn-entrenar').textContent = 'Entrenando...';
+      setStatus('Entrenando el modelo con las muestras tomadas...', '', 'warn');
+
+      classifier.train(function (lossValue) {
+        if (finalizado) return;
+
+        const esNumero = typeof lossValue === 'number' && !isNaN(lossValue);
+        const señalDeFin = lossValue === null || lossValue === undefined || lossValue === false;
+
+        if (esNumero) {
+          document.getElementById('loss-text').textContent = 'pérdida: ' + lossValue.toFixed(4);
+        } else if (!señalDeFin) {
+          document.getElementById('loss-text').textContent = 'entrenando... (' + (epochCount + 1) + ')';
+        }
+
+        epochCount++;
+
+        if (señalDeFin || epochCount >= MAX_EPOCHS_ESPERADAS) {
+          entrenamientoCompleto();
+        }
+      });
+    }
+
+    if (pendientes === 0) {
+      arrancarEntrenamiento();
+    } else {
+      setStatus('Cargando ' + pendientes + ' muestra(s) al clasificador...', '', 'warn');
+      todas.forEach(function (m) {
+        classifier.addImage(m.img, m.label, function () {
+          pendientes--;
+          if (pendientes === 0) arrancarEntrenamiento();
+        });
+      });
+    }
+  });
+};
+
+function actualizarBarraReco(gesto, confianza) {
+  const bar = document.getElementById('reco-bar-' + gesto);
+  const pct = document.getElementById('reco-pct-' + gesto);
+  document.getElementById('reco-row-label-' + gesto).textContent = obtenerNombreClase(gesto);
+
+  // Espejo en la pantalla de Control
+  const ctrlBar = document.getElementById('ctrl-bar-' + gesto);
+  const ctrlPct = document.getElementById('ctrl-pct-' + gesto);
+  const ctrlLabel = document.getElementById('ctrl-row-label-' + gesto);
+  if (ctrlLabel) ctrlLabel.textContent = obtenerNombreClase(gesto);
+
+  if (confianza === undefined) {
+    bar.style.width = '0%';
+    pct.textContent = '—';
+    if (ctrlBar) ctrlBar.style.width = '0%';
+    if (ctrlPct) ctrlPct.textContent = '0%';
+    return;
+  }
+  const pctTexto = (confianza * 100).toFixed(0) + '%';
+  bar.style.width = (confianza * 100) + '%';
+  pct.textContent = pctTexto;
+  if (ctrlBar) ctrlBar.style.width = (confianza * 100) + '%';
+  if (ctrlPct) ctrlPct.textContent = pctTexto;
+}
+
+function mostrarFeedbackControl(estado, nombre) {
+  // estado: 'idle' | 'detectado'
+  const icono = document.getElementById('feedback-icono');
+  const texto = document.getElementById('feedback-texto');
+  if (!icono || !texto) return;
+
+  if (estado === 'detectado') {
+    icono.textContent = '👋';
+    icono.classList.add('detectando');
+    texto.innerHTML = 'Detectado: <strong>' + nombre.toUpperCase() + '</strong>';
+  } else {
+    icono.textContent = '✋';
+    icono.classList.remove('detectando');
+    texto.textContent = 'Hacé un gesto para girar el aerogenerador.';
+  }
+}
+
+function reconocerLoop() {
+  if (!reconociendo || !modeloEntrenado) return;
+  classifier.classify(function (err, results) {
+    if (results && results.length) {
+      // Mapeamos TODAS las clases que devuelve, no solo la que ganó —
+      // así se puede confirmar que ambas reaccionan, no solo la primera.
+      const porLabel = {};
+      results.forEach(function (r) { porLabel[r.label] = r.confidence; });
+
+      actualizarBarraReco(1, porLabel['gesto1']);
+      actualizarBarraReco(2, porLabel['gesto2']);
+
+      const top = results[0];
+      const label = document.getElementById('reco-label');
+
+      if (top.confidence < 0.6) {
+        label.textContent = 'No reconocido';
+        label.className = 'reconocimiento-label no-reconocido';
+      } else {
+        label.textContent = (top.label === 'gesto1' ? obtenerNombreClase(1) : obtenerNombreClase(2)).toUpperCase();
+        label.className = 'reconocimiento-label activo';
+        marcarPaso('paso-4');
+        manejarReconocimientoEnControl(top.label, top.confidence);
+      }
+    }
+    if (reconociendo) reconocerLoop();
+  });
+}
+
+// ===== Pantalla de Control: rotación del aerogenerador =====
+const ORIENTACIONES = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+let orientacionIdx = 0;
+let ultimaRotacion = 0;
+const COOLDOWN_MS = 1000;
+let enControl = false;
+
+function actualizarVistaAero() {
+  const grados = orientacionIdx * 45;
+  document.getElementById('aero-grupo').setAttribute('transform', 'rotate(' + grados + ' 200 200)');
+  document.getElementById('aero-orientacion-txt').textContent = ORIENTACIONES[orientacionIdx];
+
+  // Resaltar la letra de la rosa correspondiente
+  ORIENTACIONES.forEach(function (o) {
+    const el = document.getElementById('rosa-' + o);
+    if (el) el.classList.toggle('rosa-letra-activa', o === ORIENTACIONES[orientacionIdx]);
+  });
+}
+
+function rotar(direccion) {
+  // direccion: -1 = izquierda (sentido antihorario), +1 = derecha (horario)
+  const ahora = Date.now();
+  if (ahora - ultimaRotacion < COOLDOWN_MS) return;
+  ultimaRotacion = ahora;
+
+  orientacionIdx = (orientacionIdx + direccion + 8) % 8;
+  actualizarVistaAero();
+}
+
+// En el juego real, esta asignación la define el PROGRAMADOR en sus bloques —
+// la pantalla del Aerogenerador no decide nada por sí sola. Acá lo simulamos
+// con un paso intermedio que vamos a reemplazar cuando integremos los 5 roles.
+let configProgramador = {
+  'gesto1': -1, // gesto1 → izquierda (default antes de que la chica lo defina)
+  'gesto2': +1  // gesto2 → derecha
+};
+
+let ultimoGestoRotado = null;
+
+function manejarReconocimientoEnControl(topLabel, topConfianza) {
+  if (!enControl) return;
+
+  if (topConfianza < 0.85) {
+    mostrarFeedbackControl('idle');
+    return;
+  }
+
+  const nombre = topLabel === 'gesto1' ? obtenerNombreClase(1) : obtenerNombreClase(2);
+  mostrarFeedbackControl('detectado', nombre);
+
+  // Mientras sostenés el gesto, sigue rotando una posición cada COOLDOWN_MS
+  // (típicamente 1 seg). El cooldown ya se aplica dentro de rotar().
+  const dir = configProgramador[topLabel];
+  if (dir) rotar(dir);
+}
+
+function cambiarAPantallaControl() {
+  enControl = true;
+  document.getElementById('pantalla-control').style.display = 'block';
+
+  // Mover el video al nuevo contenedor (sin tirarlo abajo).
+  const destino = document.getElementById('control-video-container');
+  destino.innerHTML = '';
+  if (video && video.elt) destino.appendChild(video.elt);
+
+  actualizarVistaAero();
+}
+
+function poblarConfigProgramador() {
+  const cont = document.getElementById('prog-config');
+  cont.innerHTML = '';
+  [1, 2].forEach(function (n) {
+    const nombre = obtenerNombreClase(n);
+    const claveGesto = 'gesto' + n;
+    const dirActual = configProgramador[claveGesto];
+
+    const row = document.createElement('div');
+    row.className = 'prog-row';
+    row.innerHTML =
+      '<span class="prog-row-gesto">' + nombre + '</span>' +
+      '<span class="prog-row-flecha">→ mover hacia</span>' +
+      '<select class="prog-row-select" data-gesto="' + claveGesto + '">' +
+      '<option value="-1"' + (dirActual === -1 ? ' selected' : '') + '>Izquierda (antihorario)</option>' +
+      '<option value="1"' + (dirActual === 1 ? ' selected' : '') + '>Derecha (horario)</option>' +
+      '</select>';
+    cont.appendChild(row);
+  });
+
+  cont.querySelectorAll('select').forEach(function (sel) {
+    sel.onchange = function () {
+      configProgramador[this.dataset.gesto] = parseInt(this.value, 10);
+    };
+  });
+}
+
+document.getElementById('btn-exportar').onclick = function () {
+  this.disabled = true;
+  marcarPaso('paso-5');
+  document.getElementById('pantalla-entrenamiento').style.display = 'none';
+  poblarConfigProgramador();
+  document.getElementById('pantalla-programador').style.display = 'block';
+};
+
+document.getElementById('btn-confirmar-prog').onclick = function () {
+  document.getElementById('pantalla-programador').style.display = 'none';
+  cambiarAPantallaControl();
+};
+
+document.getElementById('btn-finalizar').onclick = function () {
+  this.disabled = true;
+  this.textContent = '✓ Entrenamiento finalizado';
+  document.getElementById('aero-hint').textContent =
+    'Entrenamiento finalizado. En el juego real, ahora el Programador puede configurar el bloque ML.';
+};
+</script>
+</body>
+</html>

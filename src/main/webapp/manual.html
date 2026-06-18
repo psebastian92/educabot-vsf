@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual — Vientos sin fronteras</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f1a;
+  --surface: #151828;
+  --surface2: #1c2035;
+  --border: rgba(255,255,255,0.08);
+  --text: #e8eaf0;
+  --muted: #7a80a0;
+  --panel:   #4f8ef7;
+  --aero:    #5DCAA5;
+  --tecnico: #AFA9EC;
+  --prog:    #EF9F27;
+  --dist:    #ED93B1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.header {
+  padding: 24px 32px 0;
+  display: flex; align-items: center; gap: 16px;
+  max-width: 860px; margin: 0 auto;
+}
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 2px;
+  color: #4f8ef7;
+  border: 1px solid #4f8ef7;
+  padding: 4px 8px; border-radius: 4px;
+}
+.header-title { font-size: 13px; color: var(--muted); }
+.back-btn {
+  margin-left: auto;
+  font-size: 12px; color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 6px;
+  transition: all 0.2s;
+}
+.back-btn:hover { color: var(--text); border-color: var(--muted); }
+
+h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 22px; text-align: center;
+  padding: 24px 0 8px;
+}
+.subtitulo {
+  text-align: center; font-size: 13px;
+  color: var(--muted); margin-bottom: 32px;
+}
+
+/* TABS */
+nav {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  max-width: 860px; margin: 0 auto;
+  overflow-x: auto; padding: 0 32px;
+}
+nav button {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 12px 18px;
+  background: none; border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted); cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+nav button:hover { color: var(--text); }
+nav button.active { border-bottom-color: var(--tab-color); color: var(--tab-color); }
+
+/* CONTENIDO */
+.content {
+  max-width: 860px; margin: 0 auto;
+  padding: 32px;
+  display: none;
+}
+.content.active { display: block; }
+
+.section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; letter-spacing: 1px;
+  color: var(--role-color);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.card h3 {
+  font-size: 14px; font-weight: 600;
+  color: var(--role-color);
+  margin-bottom: 12px;
+}
+.card p, .card li {
+  font-size: 13px; color: var(--text);
+  line-height: 1.7;
+}
+.card ul { padding-left: 16px; }
+.card li { margin-bottom: 4px; }
+
+.tag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+  margin-right: 6px;
+}
+.tag-alr { background: rgba(93,202,165,0.15); color: #5DCAA5; }
+.tag-err { background: rgba(240,149,149,0.15); color: #F09595; }
+
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; margin-top: 8px;
+}
+th {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted); text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+
+.highlight {
+  background: var(--surface2);
+  border-left: 3px solid var(--role-color);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 13px; line-height: 1.6;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">COPA ROBÓTICA · 2026</div>
+  <div class="header-title">Vientos sin fronteras — Manual de juego</div>
+  <a href="index.jsp" class="back-btn">← Volver</a>
+</div>
+
+<h1>⚡ Manual de juego</h1>
+<p class="subtitulo">Estudiá tu rol antes del partido. Las preguntas del árbitro se basan en este manual.</p>
+
+<nav>
+  <button class="active" style="--tab-color: var(--panel)" onclick="showTab('panel', this)">🎛️ Panel de Control</button>
+  <button style="--tab-color: var(--aero)" onclick="showTab('aero', this)">💨 Aerogenerador</button>
+  <button style="--tab-color: var(--tecnico)" onclick="showTab('tecnico', this)">🔍 Técnico</button>
+  <button style="--tab-color: var(--prog)" onclick="showTab('prog', this)">💻 Programador</button>
+  <button style="--tab-color: var(--dist)" onclick="showTab('dist', this)">🗺️ Distribuidor</button>
+  <button style="--tab-color: #7a80a0" onclick="showTab('general', this)">📋 General</button>
+</nav>
+
+<!-- PANEL DE CONTROL -->
+<div id="tab-panel" class="content active" style="--role-color: var(--panel)">
+  <div class="card">
+    <h3>¿Qué hace este rol?</h3>
+    <p>Es el coordinador del equipo. Tiene la visión global del sistema y debe comunicar constantemente a los demás roles lo que ve en su pantalla.</p>
+  </div>
+
+  <div class="card">
+    <h3>Tareas principales</h3>
+    <ul>
+      <li>Ver la <strong>dirección del viento</strong> e informar al Operario del Aerogenerador.</li>
+      <li>Ver el <strong>modelo del transformador</strong> e informar al Técnico Especialista.</li>
+      <li>Ver los <strong>mensajes de alerta</strong> (ALR y ERR) e informar al Técnico Especialista.</li>
+      <li>Ver la <strong>energía generada</strong> e informar al Distribuidor de Energía.</li>
+      <li>Ver el <strong>consumo del transformador</strong> e informar al Programador si hay sobrecarga o margen.</li>
+      <li>Si el transformador se quema: <strong>reemplazarlo</strong> e informar el nuevo modelo al Técnico.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>El viento</h3>
+    <ul>
+      <li>8 direcciones posibles: N, NE, E, SE, S, SO, O, NO.</li>
+      <li>Cambia cada 20 a 50 segundos. Nunca repite la dirección actual.</li>
+      <li>5 segundos antes del cambio se dispara una alerta ALR visible en el panel.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Alertas que ve y a quién informa</h3>
+    <table>
+      <tr><th>Código</th><th>Significado</th><th>Informar a</th></tr>
+      <tr><td><span class="tag tag-alr">ALR</span>Cambio de viento</td><td>En 5 seg cambia la dirección</td><td>Aerogenerador</td></tr>
+      <tr><td><span class="tag tag-alr">ALR</span>Pico de energía</td><td>En 5 seg llega un pico +150kW</td><td>Programador</td></tr>
+      <tr><td><span class="tag tag-alr">ALR</span>Carga &gt;90%</td><td>Transformador cerca del límite</td><td>Programador y/o Aerogenerador</td></tr>
+      <tr><td><span class="tag tag-alr">ALR</span>Zona crítica</td><td>Una zona sin energía suficiente</td><td>Distribuidor de Energía</td></tr>
+      <tr><td><span class="tag tag-err">ERR</span>Transformador quemado</td><td>Falla total del transformador</td><td>Reemplazarlo + informar Técnico</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Sobrecarga del transformador</h3>
+    <ul>
+      <li>Si el consumo supera el <strong>100%</strong> → sobrecarga.</li>
+      <li>Sistema <strong>ONAN</strong>: aguanta 15 segundos antes de quemarse.</li>
+      <li>Sistema <strong>ONAF</strong>: aguanta 30 segundos antes de quemarse.</li>
+      <li>Transformador quemado → penalización de <strong>-5 puntos</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- AEROGENERADOR -->
+<div id="tab-aero" class="content" style="--role-color: var(--aero)">
+  <div class="card">
+    <h3>¿Qué hace este rol?</h3>
+    <p>Entrena el modelo de machine learning y controla la orientación del aerogenerador usando gestos de la mano frente a la cámara.</p>
+  </div>
+
+  <div class="card">
+    <h3>Pasos del entrenamiento ML</h3>
+    <ul>
+      <li>Nombrar la clase (ej: "izquierda").</li>
+      <li>Hacer clic en "añadir muestras" y colocar la mano frente a la cámara.</li>
+      <li>Tomar entre 3 y 4 fotos del mismo gesto.</li>
+      <li>Hacer clic en "cargar muestras".</li>
+      <li>Repetir para la segunda clase (ej: "derecha") con un gesto diferente.</li>
+      <li>Hacer clic en "realizar entrenamiento".</li>
+      <li>Evaluar que el modelo reconoce los gestos correctamente.</li>
+      <li>Hacer clic en "exportar modelo" para volver al juego.</li>
+    </ul>
+    <div class="highlight">Importante: informar al Programador qué gesto corresponde a qué orientación antes de que configure el bloque ML.</div>
+  </div>
+
+  <div class="card">
+    <h3>Control del aerogenerador</h3>
+    <ul>
+      <li>El aerogenerador no se mueve hasta que el Programador configure el bloque ML.</li>
+      <li>Una vez configurado, mover el aerogenerador según indica el Panel de Control.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Eficiencia según orientación</h3>
+    <table>
+      <tr><th>Defasaje respecto al viento</th><th>Eficiencia</th></tr>
+      <tr><td>0° (alineado)</td><td>100%</td></tr>
+      <tr><td>±45°</td><td>85%</td></tr>
+      <tr><td>±90°</td><td>60%</td></tr>
+      <tr><td>±135°</td><td>30%</td></tr>
+      <tr><td>180° (opuesto)</td><td>0%</td></tr>
+    </table>
+    <div class="highlight">Si el modelo ML no está conectado: eficiencia 0% sin importar la orientación.</div>
+  </div>
+
+  <div class="card">
+    <h3>Energía generada</h3>
+    <p>kW generados = 200 × (eficiencia / 100) + bonus de pico</p>
+    <ul style="margin-top:8px">
+      <li>Base: 200 kW a 100% de eficiencia.</li>
+      <li>Picos de energía: suman +150 kW durante 15 a 25 segundos.</li>
+      <li>Los picos ocurren cada 30 a 90 segundos una vez iniciada la generación.</li>
+    </ul>
+    <div class="highlight">Si hay ALR de carga &gt;90%: reorientar el aerogenerador para bajar eficiencia y proteger el transformador.</div>
+  </div>
+</div>
+
+<!-- TÉCNICO ESPECIALISTA -->
+<div id="tab-tecnico" class="content" style="--role-color: var(--tecnico)">
+  <div class="card">
+    <h3>¿Qué hace este rol?</h3>
+    <p>Busca información técnica en la documentación de su pantalla y la pasa al Programador. También decodifica las alertas ERR que le informa el Panel de Control.</p>
+  </div>
+
+  <div class="card">
+    <h3>Tareas principales</h3>
+    <ul>
+      <li>Cuando el Panel informa el modelo del transformador, buscar el documento correspondiente y extraer: Group vectorial, Potencia, Valor de conversión, Sistema de enfriamiento.</li>
+      <li>Pasar esos datos al Programador para que configure el transformador.</li>
+      <li>Decodificar los códigos ERR que informa el Panel y decirle a quién le corresponde actuar.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Modelos de transformadores</h3>
+    <table>
+      <tr><th>Modelo</th><th>Group vectorial</th><th>Potencia</th><th>Val. conversión</th><th>Enfriamiento</th></tr>
+      <tr><td>TX-10</td><td>Dyn11</td><td>500 KVA</td><td>0.8</td><td>ONAN</td></tr>
+      <tr><td>TX-20</td><td>YNyn0</td><td>750 KVA</td><td>1.0</td><td>ONAF</td></tr>
+      <tr><td>TX-30</td><td>Dyn5</td><td>1000 KVA</td><td>1.2</td><td>ONAN</td></tr>
+      <tr><td>TX-40</td><td>Yd11</td><td>1250 KVA</td><td>0.9</td><td>ONAF</td></tr>
+      <tr><td>TX-50</td><td>Dyn1</td><td>1500 KVA</td><td>1.1</td><td>ONAN</td></tr>
+      <tr><td>TX-60</td><td>YNyn2</td><td>2000 KVA</td><td>0.7</td><td>ONAF</td></tr>
+      <tr><td>TX-70</td><td>Dyn7</td><td>2500 KVA</td><td>1.3</td><td>ONAN</td></tr>
+    </table>
+    <div class="highlight">ONAN aguanta 15 seg de sobrecarga. ONAF aguanta 30 seg.</div>
+  </div>
+
+  <div class="card">
+    <h3>Decodificación de alertas ERR</h3>
+    <table>
+      <tr><th>ERR</th><th>Significado</th><th>Quién actúa</th></tr>
+      <tr><td>Transformador quemado</td><td>Falla total</td><td>Panel reemplaza + Técnico informa modelo al Programador</td></tr>
+      <tr><td>Subestación inactiva</td><td>No hay conversión</td><td>Programador activa la subestación</td></tr>
+      <tr><td>Transformador no configurado</td><td>Falta programarlo</td><td>Programador configura el transformador</td></tr>
+      <tr><td>Modelo ML no conectado</td><td>Aerogenerador inmóvil</td><td>Programador conecta el bloque ML</td></tr>
+      <tr><td>Transformador OK, subestación inactiva</td><td>Falta activar sub.</td><td>Programador activa la subestación</td></tr>
+      <tr><td>Intermitencia energética &gt;1 min</td><td>Zona sin energía</td><td>Distribuidor redistribuye o usa generador</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- PROGRAMADOR -->
+<div id="tab-prog" class="content" style="--role-color: var(--prog)">
+  <div class="card">
+    <h3>¿Qué hace este rol?</h3>
+    <p>Programa con bloques visuales el transformador, la subestación y el aerogenerador. Es el que activa el sistema y lo mantiene funcionando.</p>
+  </div>
+
+  <div class="card">
+    <h3>Orden de configuración</h3>
+    <ul>
+      <li><strong>1.</strong> Pedir al Técnico Especialista los datos del transformador (Group vectorial, Potencia, Valor de conversión, Sistema de enfriamiento).</li>
+      <li><strong>2.</strong> Programar el transformador con esos datos.</li>
+      <li><strong>3.</strong> Programar y activar la subestación.</li>
+      <li><strong>4.</strong> Esperar que el Aerogenerador exporte el modelo ML, luego programar el bloque del aerogenerador.</li>
+      <li><strong>5.</strong> Ajustar el valor de conversión según el consumo que informa el Panel.</li>
+      <li><strong>6.</strong> En caso de falla: reconfigurar el transformador nuevo y reactivar la subestación.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Valor de conversión</h3>
+    <table>
+      <tr><th>Factor</th><th>Efecto</th></tr>
+      <tr><td>= 1.0</td><td>Valor indicado por el fabricante (referencia)</td></tr>
+      <tr><td>&gt; 1.0</td><td>Más kW convertidos, pero más carga en el transformador</td></tr>
+      <tr><td>&lt; 1.0</td><td>Menos kW convertidos, más seguridad frente a picos</td></tr>
+    </table>
+    <div class="highlight">Durante un pico de energía (+150 kW, 15-25 seg): bajar el factor urgente o el transformador puede superar 100% y quemarse.</div>
+  </div>
+
+  <div class="card">
+    <h3>Valores de conversión por modelo</h3>
+    <table>
+      <tr><th>Modelo</th><th>Val. conversión</th><th>Enfriamiento</th></tr>
+      <tr><td>TX-10</td><td>0.8</td><td>ONAN (15 seg)</td></tr>
+      <tr><td>TX-20</td><td>1.0</td><td>ONAF (30 seg)</td></tr>
+      <tr><td>TX-30</td><td>1.2</td><td>ONAN (15 seg)</td></tr>
+      <tr><td>TX-40</td><td>0.9</td><td>ONAF (30 seg)</td></tr>
+      <tr><td>TX-50</td><td>1.1</td><td>ONAN (15 seg)</td></tr>
+      <tr><td>TX-60</td><td>0.7</td><td>ONAF (30 seg)</td></tr>
+      <tr><td>TX-70</td><td>1.3</td><td>ONAN (15 seg)</td></tr>
+    </table>
+    <div class="highlight">Sin subestación activa no hay conversión de energía aunque el aerogenerador esté girando.</div>
+  </div>
+</div>
+
+<!-- DISTRIBUIDOR -->
+<div id="tab-dist" class="content" style="--role-color: var(--dist)">
+  <div class="card">
+    <h3>¿Qué hace este rol?</h3>
+    <p>Distribuye la energía disponible en la batería central a las 4 zonas de la ciudad usando sliders, intentando mantener todas iluminadas.</p>
+  </div>
+
+  <div class="card">
+    <h3>Las 4 zonas</h3>
+    <table>
+      <tr><th>Zona</th><th>Demanda base</th><th>Evento</th><th>Demanda con evento</th></tr>
+      <tr><td>Centro</td><td>15 u/seg</td><td>No</td><td>15 u/seg</td></tr>
+      <tr><td>Este</td><td>25 u/seg</td><td>×1.6</td><td>40 u/seg</td></tr>
+      <tr><td>Oeste</td><td>25 u/seg</td><td>×1.6</td><td>40 u/seg</td></tr>
+      <tr><td>Lago</td><td>40 u/seg</td><td>×2.2</td><td>88 u/seg</td></tr>
+    </table>
+    <div class="highlight">Demanda total base: 105 u/seg. Con los 3 eventos activos: 183 u/seg.</div>
+  </div>
+
+  <div class="card">
+    <h3>Estados de las zonas</h3>
+    <table>
+      <tr><th>Estado</th><th>Cobertura</th></tr>
+      <tr><td>Iluminada ✅</td><td>≥ 85%</td></tr>
+      <tr><td>Parcial</td><td>30% – 85%</td></tr>
+      <tr><td>Crítica ⚠️</td><td>1% – 30%</td></tr>
+      <tr><td>Sin energía ❌</td><td>0%</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Batería central y sliders</h3>
+    <ul>
+      <li>Capacidad máxima: 100 unidades.</li>
+      <li>Se llena a razón de: kW convertidos × 0.005 unidades por segundo.</li>
+      <li>Con 200 kW convertidos → se acumulan 10 unidades por segundo.</li>
+      <li>Los 4 sliders suman siempre 100% — definen qué porcentaje de la energía disponible recibe cada zona.</li>
+      <li>Si la subestación cae: la cobertura baja 8 puntos porcentuales por segundo.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Generadores de emergencia</h3>
+    <ul>
+      <li>Hay 3 generadores disponibles por partida.</li>
+      <li>Cada uno aporta el 90% de la demanda de una zona durante 30 segundos.</li>
+      <li>Solo se puede tener un generador activo por zona.</li>
+      <li>No se reponen durante la partida — usarlos con criterio.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Puntaje y penalizaciones</h3>
+    <div class="grid2">
+      <div>
+        <p style="color:var(--aero); font-weight:600; margin-bottom:8px">Bonus</p>
+        <ul>
+          <li>Ciudad iluminada al final: <strong>+15 pts</strong></li>
+          <li>+1 pt por cada 1000 unidades entregadas a zonas</li>
+        </ul>
+      </div>
+      <div>
+        <p style="color:#F09595; font-weight:600; margin-bottom:8px">Penalizaciones</p>
+        <ul>
+          <li>Zona &lt;85%: <strong>-1 pt cada 30 seg</strong></li>
+          <li>Zona no iluminada al final: <strong>-3 pts por zona</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GENERAL -->
+<div id="tab-general" class="content" style="--role-color: #7a80a0">
+  <div class="card">
+    <h3>Dinámica general</h3>
+    <ul>
+      <li>Cada partida dura <strong>15 minutos</strong>.</li>
+      <li>El equipo se comunica en tiempo real — ningún rol tiene toda la información.</li>
+      <li>Pueden rotar roles durante la partida desde la barra superior.</li>
+      <li>Si un jugador se desconecta, su rol queda reservado 90 segundos.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Las 3 etapas del juego</h3>
+    <table>
+      <tr><th>Etapa</th><th>Estado</th><th>Acciones clave</th></tr>
+      <tr><td>Configuración</td><td>Sin energía</td><td>Aerogenerador entrena ML. Panel informa modelo al Técnico. Programador configura todo.</td></tr>
+      <tr><td>Funcionamiento</td><td>Generando energía</td><td>Panel comunica viento y alertas. Programador ajusta conversión. Distribuidor ilumina zonas.</td></tr>
+      <tr><td>Falla</td><td>Transformador quemado</td><td>Panel reemplaza transformador. Técnico informa modelo. Programador reconfigura.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Sistema de puntaje completo</h3>
+    <div class="grid2">
+      <div>
+        <p style="color:var(--aero); font-weight:600; margin-bottom:8px">Bonus</p>
+        <ul>
+          <li>Configurar transformador: <strong>+2 pts</strong> (repetible)</li>
+          <li>Activar subestación: <strong>+1 pt</strong> (una vez)</li>
+          <li>Generación: <strong>+1 pt / 1000 kW</strong></li>
+          <li>Zonas iluminadas: <strong>+1 pt / 1000 unidades</strong></li>
+          <li>Ciudad iluminada al final: <strong>+15 pts</strong></li>
+        </ul>
+      </div>
+      <div>
+        <p style="color:#F09595; font-weight:600; margin-bottom:8px">Penalizaciones</p>
+        <ul>
+          <li>Transformador quemado: <strong>-5 pts</strong></li>
+          <li>Zona &lt;85%: <strong>-1 pt / 30 seg</strong></li>
+          <li>Zona no iluminada al final: <strong>-3 pts / zona</strong></li>
+          <li>Puntaje final negativo → queda en 0</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Estructura de partidas</h3>
+    <table>
+      <tr><th>Partido de práctica</th><th>1ra partida</th><th>2da partida</th><th>3ra partida</th></tr>
+      <tr><td>No acumula puntos</td><td>Suma al total</td><td>Suma al total</td><td>Suma al total</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.content').forEach(function(c) { c.classList.remove('active'); });
+  document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

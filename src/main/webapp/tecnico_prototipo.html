@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Técnico Especialista — Vientos sin fronteras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #2d333b;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --aero: #5DCAA5;
+  --warn: #EF9F27;
+  --danger: #E24B4A;
+  --ok: #1D9E75;
+  --acento: #AFA9EC;
+  --tecnico: #F09997;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.rol-badge {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.rol-icono {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #D4537E, #993556);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.header-stats {
+  display: flex; gap: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.stat-chip strong { color: var(--aero); margin-left: 6px; }
+.stat-chip.tiempo strong { color: var(--acento); }
+
+.banner-estado {
+  max-width: 1200px;
+  margin: 0 auto 14px;
+  padding: 10px 16px;
+  background: rgba(175,169,236,0.08);
+  border-left: 3px solid var(--acento);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.banner-estado strong { color: var(--acento); }
+
+.banner-activo {
+  max-width: 1200px;
+  margin: 0 auto 14px;
+  padding: 14px 18px;
+  background: rgba(240,153,151,0.08);
+  border: 1px solid rgba(240,153,151,0.25);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.banner-activo .titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--tecnico);
+  margin-bottom: 6px;
+}
+.banner-activo .descripcion {
+  color: var(--muted);
+}
+.banner-activo strong {
+  font-family: 'Space Mono', monospace;
+  color: var(--text);
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+.seccion {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.seccion-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.seccion-titulo::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--tecnico);
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.card-doc {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+  min-height: 80px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+}
+.card-doc:hover {
+  border-color: var(--tecnico);
+  transform: translateY(-2px);
+}
+.card-doc.activo {
+  border-color: var(--tecnico);
+  background: rgba(240,153,151,0.08);
+  box-shadow: 0 0 0 1px var(--tecnico);
+}
+.card-doc .icono {
+  font-size: 20px;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+.card-doc .codigo {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.card-doc .tipo-mini {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* Cards de alertas con colores según prefijo */
+.card-doc.alerta-alr .codigo { color: var(--warn); }
+.card-doc.alerta-err .codigo { color: var(--danger); }
+
+/* Modal/overlay para los detalles */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.overlay.visible { display: flex; }
+
+.modal-doc {
+  background: var(--surface);
+  border: 1px solid var(--tecnico);
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-cerrar {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-cerrar:hover { color: var(--text); border-color: var(--tecnico); }
+
+.modal-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.modal-codigo {
+  font-family: 'Space Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.modal-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.modal-tabla td {
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-tabla td:first-child {
+  color: var(--muted);
+  width: 50%;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.modal-tabla td:last-child {
+  text-align: right;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-alerta-descripcion {
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.modal-alerta-accion {
+  background: rgba(175,169,236,0.08);
+  border-left: 3px solid var(--acento);
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text);
+}
+.modal-alerta-accion strong {
+  color: var(--acento);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="rol-badge">
+    <div class="rol-icono">🔧</div>
+    <span>TÉCNICO ESPECIALISTA</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">Puntos<strong id="puntaje">0</strong></div>
+    <div class="stat-chip tiempo">⏱<strong id="tiempo-restante">15:00</strong></div>
+  </div>
+</div>
+
+<div class="banner-estado">
+  Estado: <strong id="estado-actual">esperando</strong>
+</div>
+
+<div class="banner-activo" id="banner-activo">
+  <div class="titulo">⚡ Transformador en uso por el sistema</div>
+  <div class="descripcion">El Operario del Panel ya está usando un transformador.
+    Si te pasa el modelo, busca su card abajo y pasa los datos al Programador.
+    Modelo activo: <strong id="modelo-activo">—</strong></div>
+</div>
+
+<div class="layout">
+
+  <!-- Sección: Transformadores -->
+  <div class="seccion">
+    <div class="seccion-titulo">Documentación de Transformadores</div>
+    <div class="grid-cards" id="grid-transformadores">
+      <!-- Se llena con JS -->
+    </div>
+  </div>
+
+  <!-- Sección: Alertas -->
+  <div class="seccion">
+    <div class="seccion-titulo">Diccionario de Códigos de Alerta</div>
+    <div class="grid-cards" id="grid-alertas">
+      <!-- Se llena con JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal-doc">
+    <button class="modal-cerrar" id="modal-cerrar">×</button>
+    <div id="modal-contenido"></div>
+  </div>
+</div>
+
+<script>
+// Datos hardcodeados de transformadores (coinciden con la BD)
+const TRANSFORMADORES = [
+  { modelo: 'TX-2C', potenciaMva: 40,  conversion: '132/33 kV', grupoVectorial: 'Yyn0',  enfriamiento: 'ONAF', fabricante: 'ABB Transformadores' },
+  { modelo: 'TX-3D', potenciaMva: 100, conversion: '220/66 kV', grupoVectorial: 'Dyn5',  enfriamiento: 'ONAF', fabricante: 'Hitachi Energy' },
+  { modelo: 'TX-4A', potenciaMva: 25,  conversion: '66/13 kV',  grupoVectorial: 'Dyn11', enfriamiento: 'ONAN', fabricante: 'Siemens Energy' },
+  { modelo: 'TX-5A', potenciaMva: 16,  conversion: '33/13 kV',  grupoVectorial: 'Dyn11', enfriamiento: 'ONAN', fabricante: 'Siemens Energy' },
+  { modelo: 'TX-6B', potenciaMva: 80,  conversion: '132/20 kV', grupoVectorial: 'Yyn0',  enfriamiento: 'ONAF', fabricante: 'ABB Transformadores' },
+  { modelo: 'TX-7B', potenciaMva: 63,  conversion: '132/20 kV', grupoVectorial: 'Dyn5',  enfriamiento: 'ONAF', fabricante: 'Hitachi Energy' },
+  { modelo: 'TX-9C', potenciaMva: 50,  conversion: '66/20 kV',  grupoVectorial: 'Dyn5',  enfriamiento: 'ONAN', fabricante: 'Hitachi Energy' }
+];
+
+// Tabla de alertas según manual sec 5
+const ALERTAS = [
+  { codigo: 'ALR-13', tipo: 'ALR', descripcion: 'Próximo cambio de dirección del viento (5 segundos de aviso).',
+    accion: 'El Aerogenerador debe prepararse para reorientar el aerogenerador.' },
+  { codigo: 'ALR-27', tipo: 'ALR', descripcion: 'Próximo pico de energía (5 segundos de aviso).',
+    accion: 'El Programador debe prepararse para ajustar el valor de conversión.' },
+  { codigo: 'ALR-42', tipo: 'ALR', descripcion: 'El Aerogenerador todavía no entrenó el modelo de machine learning.',
+    accion: 'El Aerogenerador debe entrenar el modelo de machine learning.' },
+  { codigo: 'ALR-88', tipo: 'ALR', descripcion: 'Carga del transformador mayor al 90%.',
+    accion: 'El Programador debe ajustar el valor de conversión de manera urgente, o el Aerogenerador debe reorientar el aerogenerador para bajar el nivel de eficiencia.' },
+  { codigo: 'ERR-04', tipo: 'ERR', descripcion: 'Transformador quemado.',
+    accion: 'El Panel de Control debe reemplazar el transformador e informar el modelo al Técnico Especialista. El Programador debe configurar el nuevo transformador y volver a activar la subestación.' },
+  { codigo: 'ERR-08', tipo: 'ERR', descripcion: 'Transformador no configurado o mal configurado (y el molino está generando energía).',
+    accion: 'El Programador debe configurar el transformador.' },
+  { codigo: 'ERR-11', tipo: 'ERR', descripcion: 'Subestación inactiva o con falla.',
+    accion: 'El Programador debe activar la subestación.' }
+];
+
+// === Renderizado de cards de transformadores ===
+function renderTransformadores() {
+  const cont = document.getElementById('grid-transformadores');
+  cont.innerHTML = '';
+  TRANSFORMADORES.forEach(function (tx) {
+    const card = document.createElement('div');
+    card.className = 'card-doc';
+    card.dataset.modelo = tx.modelo;
+    card.innerHTML =
+      '<div class="icono">📄</div>' +
+      '<div class="codigo">' + tx.modelo + '</div>' +
+      '<div class="tipo-mini">Hoja técnica</div>';
+    card.onclick = function () { abrirModalTransformador(tx); };
+    cont.appendChild(card);
+  });
+}
+
+function abrirModalTransformador(tx) {
+  const contenido =
+    '<div class="modal-titulo">Hoja técnica del transformador</div>' +
+    '<div class="modal-codigo">' + tx.modelo + '</div>' +
+    '<table class="modal-tabla">' +
+      '<tr><td>Potencia nominal</td><td>' + tx.potenciaMva + ' MVA</td></tr>' +
+      '<tr><td>Valor de conversión</td><td>' + tx.conversion + '</td></tr>' +
+      '<tr><td>Grupo vectorial</td><td>' + tx.grupoVectorial + '</td></tr>' +
+      '<tr><td>Sistema de enfriamiento</td><td>' + tx.enfriamiento + '</td></tr>' +
+      '<tr><td>Fabricante</td><td>' + tx.fabricante + '</td></tr>' +
+    '</table>';
+  abrirModal(contenido);
+}
+
+// === Renderizado de cards de alertas ===
+function renderAlertas() {
+  const cont = document.getElementById('grid-alertas');
+  cont.innerHTML = '';
+  ALERTAS.forEach(function (a) {
+    const card = document.createElement('div');
+    card.className = 'card-doc ' + (a.tipo === 'ERR' ? 'alerta-err' : 'alerta-alr');
+    card.innerHTML =
+      '<div class="icono">' + (a.tipo === 'ERR' ? '⚠️' : '🔔') + '</div>' +
+      '<div class="codigo">' + a.codigo + '</div>' +
+      '<div class="tipo-mini">' + (a.tipo === 'ERR' ? 'Error' : 'Informativa') + '</div>';
+    card.onclick = function () { abrirModalAlerta(a); };
+    cont.appendChild(card);
+  });
+}
+
+function abrirModalAlerta(a) {
+  const contenido =
+    '<div class="modal-titulo">Código de alerta — ' + (a.tipo === 'ERR' ? 'Error' : 'Informativa') + '</div>' +
+    '<div class="modal-codigo" style="color: ' + (a.tipo === 'ERR' ? 'var(--danger)' : 'var(--warn)') + ';">' + a.codigo + '</div>' +
+    '<div class="modal-alerta-descripcion">' + a.descripcion + '</div>' +
+    '<div class="modal-alerta-accion"><strong>Acción a tomar:</strong> ' + a.accion + '</div>';
+  abrirModal(contenido);
+}
+
+function abrirModal(html) {
+  document.getElementById('modal-contenido').innerHTML = html;
+  document.getElementById('overlay').classList.add('visible');
+}
+
+function cerrarModal() {
+  document.getElementById('overlay').classList.remove('visible');
+}
+
+document.getElementById('modal-cerrar').onclick = cerrarModal;
+document.getElementById('overlay').onclick = function (e) {
+  if (e.target === this) cerrarModal();
+};
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') cerrarModal();
+});
+
+// === Polling para destacar el transformador activo y mostrar alertas en vivo ===
+async function refrescar() {
+  try {
+    const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
+    const e = await r.json();
+
+    document.getElementById('puntaje').textContent = e.puntaje;
+    document.getElementById('tiempo-restante').textContent = e.tiempoRestante;
+    document.getElementById('estado-actual').textContent = e.estado;
+
+    // Destacar el modelo activo
+    const modeloActivo = e.tecnico && e.tecnico.transformadorActivo ? e.tecnico.transformadorActivo.modelo : '';
+    document.getElementById('modelo-activo').textContent = modeloActivo || '—';
+
+    document.querySelectorAll('#grid-transformadores .card-doc').forEach(function (card) {
+      card.classList.toggle('activo', card.dataset.modelo === modeloActivo);
+    });
+
+    // Destacar las alertas que están activas ahora mismo
+    const alertasActivas = (e.alertas || []).map(function (a) { return a.codigo; });
+    document.querySelectorAll('#grid-alertas .card-doc').forEach(function (card) {
+      const codigo = card.querySelector('.codigo').textContent;
+      card.classList.toggle('activo', alertasActivas.includes(codigo));
+    });
+
+  } catch (err) {
+    console.error('refrescar falló:', err);
+  }
+}
+
+renderTransformadores();
+renderAlertas();
+refrescar();
+setInterval(refrescar, 1000);
+</script>
+</body>
+</html>

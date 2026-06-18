@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Programador — Vientos sin fronteras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #2d333b;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --aero: #5DCAA5;
+  --warn: #EF9F27;
+  --danger: #E24B4A;
+  --ok: #1D9E75;
+  --acento: #AFA9EC;
+  --prog-azul: #378ADD;
+  --prog-rojo: #E24B4A;
+  --prog-azul-oscuro: #1F4E96;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.rol-badge {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.rol-icono {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #EF9F27, #BA7517);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.header-stats {
+  display: flex; gap: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.stat-chip strong { color: var(--aero); margin-left: 6px; }
+.stat-chip.tiempo strong { color: var(--acento); }
+
+.banner-estado {
+  max-width: 1200px;
+  margin: 0 auto 14px;
+  padding: 10px 16px;
+  background: rgba(175,169,236,0.08);
+  border-left: 3px solid var(--acento);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.banner-estado strong { color: var(--acento); }
+
+.indicadores-row {
+  max-width: 1200px;
+  margin: 0 auto 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.indicador {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.indicador-led {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.indicador-led.activo {
+  background: var(--ok);
+  box-shadow: 0 0 6px var(--ok);
+}
+.indicador-texto {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.indicador-texto strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+
+/* ========== Paneles (los "bloques") ========== */
+.panel-bloque {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px;
+  border-left: 5px solid;
+}
+.panel-aero { border-left-color: var(--prog-azul-oscuro); }
+.panel-tx   { border-left-color: var(--prog-rojo); }
+.panel-sub  { border-left-color: var(--prog-azul); }
+
+.panel-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-aero .panel-titulo { color: var(--prog-azul-oscuro); }
+.panel-tx   .panel-titulo { color: var(--prog-rojo); }
+.panel-sub  .panel-titulo { color: var(--prog-azul); }
+.panel-titulo-icono {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  background: currentColor;
+  display: inline-block;
+  opacity: 0.4;
+}
+
+.sub-bloque {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.sub-bloque-titulo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bloque-fila {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+}
+.bloque-fila input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  width: 70px;
+}
+.bloque-fila input:focus {
+  outline: none;
+  border-color: var(--prog-rojo);
+}
+.bloque-fila select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.bloque-fila select:focus {
+  outline: none;
+  border-color: var(--prog-azul-oscuro);
+}
+
+.btn-aplicar {
+  width: 100%;
+  border: none;
+  color: white;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 10px;
+}
+.btn-aero { background: var(--prog-azul-oscuro); }
+.btn-tx   { background: var(--prog-rojo); }
+.btn-sub  { background: var(--prog-azul); }
+.btn-aplicar:hover { opacity: 0.85; }
+.btn-aplicar:disabled {
+  background: var(--ok);
+  opacity: 1;
+  cursor: default;
+}
+
+.feedback {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  min-height: 0;
+  display: none;
+}
+.feedback.ok {
+  display: block;
+  background: rgba(29,158,117,0.15);
+  border-left: 3px solid var(--ok);
+  color: var(--ok);
+}
+.feedback.error {
+  display: block;
+  background: rgba(226,75,74,0.15);
+  border-left: 3px solid var(--danger);
+  color: var(--danger);
+}
+
+.condicional-wrapper {
+  background: rgba(175,169,236,0.06);
+  border: 1px dashed rgba(175,169,236,0.3);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.condicional-wrapper .if-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--acento);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="rol-badge">
+    <div class="rol-icono">⚙️</div>
+    <span>PROGRAMADOR</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">Puntos<strong id="puntaje">0</strong></div>
+    <div class="stat-chip tiempo">⏱<strong id="tiempo-restante">15:00</strong></div>
+  </div>
+</div>
+
+<div class="banner-estado">
+  Estado: <strong id="estado-actual">esperando</strong>
+</div>
+
+<!-- Indicadores rápidos: estado de los 3 componentes -->
+<div class="indicadores-row">
+  <div class="indicador">
+    <div class="indicador-led" id="led-aero"></div>
+    <div class="indicador-texto">AEROGENERADOR<strong id="estado-aero">Sin configurar</strong></div>
+  </div>
+  <div class="indicador">
+    <div class="indicador-led" id="led-tx"></div>
+    <div class="indicador-texto">TRANSFORMADOR<strong id="estado-tx">Sin configurar</strong></div>
+  </div>
+  <div class="indicador">
+    <div class="indicador-led" id="led-sub"></div>
+    <div class="indicador-texto">SUBESTACIÓN<strong id="estado-sub">Inactiva</strong></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ===== Panel Aerogenerador ===== -->
+  <div class="panel-bloque panel-aero">
+    <div class="panel-titulo">
+      <span class="panel-titulo-icono"></span>
+      Aerogenerador
+    </div>
+
+    <div class="sub-bloque">
+      <div class="sub-bloque-titulo">Entrenar modelo</div>
+      <div class="bloque-fila" style="margin-bottom: 6px;">
+        Gesto 1 →
+        <select id="gesto1-dir">
+          <option value="izquierda">Mover a la izquierda</option>
+          <option value="derecha">Mover a la derecha</option>
+        </select>
+      </div>
+      <div class="bloque-fila">
+        Gesto 2 →
+        <select id="gesto2-dir">
+          <option value="derecha">Mover a la derecha</option>
+          <option value="izquierda">Mover a la izquierda</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-aplicar btn-aero" id="btn-aplicar-aero">Aplicar configuración del aerogenerador</button>
+    <div class="feedback" id="feedback-aero"></div>
+  </div>
+
+  <!-- ===== Panel Transformador ===== -->
+  <div class="panel-bloque panel-tx">
+    <div class="panel-titulo">
+      <span class="panel-titulo-icono"></span>
+      Transformador
+    </div>
+
+    <div class="sub-bloque">
+      <div class="sub-bloque-titulo">Cambiar grupo vectorial</div>
+      <div class="bloque-fila">
+        Grupo vectorial:
+        <input type="text" id="tx-grupo" placeholder="Dyn5" maxlength="6" style="width: 90px;">
+      </div>
+      <div class="bloque-fila" style="margin-top: 6px;">
+        a potencia
+        <input type="number" id="tx-potencia" placeholder="63" min="1" max="999">
+        MVA
+      </div>
+    </div>
+
+    <div class="sub-bloque">
+      <div class="sub-bloque-titulo">Ajustar valor de conversión</div>
+      <div class="bloque-fila">
+        <input type="number" id="tx-alta" placeholder="132" min="1" max="999">
+        /
+        <input type="number" id="tx-baja" placeholder="20" min="1" max="999">
+        kV
+      </div>
+    </div>
+
+    <button class="btn-aplicar btn-tx" id="btn-aplicar-tx">Aplicar configuración del transformador</button>
+    <div class="feedback" id="feedback-tx"></div>
+  </div>
+
+  <!-- ===== Panel Subestación ===== -->
+  <div class="panel-bloque panel-sub">
+    <div class="panel-titulo">
+      <span class="panel-titulo-icono"></span>
+      Subestación
+    </div>
+
+    <div class="condicional-wrapper">
+      <div class="if-label">SI</div>
+      <div class="bloque-fila" style="font-size: 12px; color: var(--muted);">
+        El transformador está configurado
+      </div>
+    </div>
+
+    <div class="sub-bloque">
+      <div class="sub-bloque-titulo">Acción</div>
+      <div class="bloque-fila">
+        Activar la subestación
+      </div>
+    </div>
+
+    <button class="btn-aplicar btn-sub" id="btn-aplicar-sub">Activar subestación</button>
+    <div class="feedback" id="feedback-sub"></div>
+  </div>
+
+</div>
+
+<script>
+
+function mostrarFeedback(id, mensaje, tipo) {
+  const el = document.getElementById(id);
+  el.className = 'feedback ' + tipo;
+  el.textContent = mensaje;
+}
+
+function limpiarFeedback(id) {
+  const el = document.getElementById(id);
+  el.className = 'feedback';
+  el.textContent = '';
+}
+
+// === Aerogenerador: reactivar botón si la chica cambia un selector ===
+document.getElementById('gesto1-dir').addEventListener('change', resetearBotonAero);
+document.getElementById('gesto2-dir').addEventListener('change', resetearBotonAero);
+function resetearBotonAero() {
+  const btn = document.getElementById('btn-aplicar-aero');
+  btn.disabled = false;
+  btn.textContent = 'Aplicar configuración del aerogenerador';
+  btn.classList.remove('aplicado');
+  limpiarFeedback('feedback-aero');
+}
+
+// === Transformador: reactivar botón si la chica cambia algún input ===
+['tx-grupo', 'tx-potencia', 'tx-alta', 'tx-baja'].forEach(function (id) {
+  const input = document.getElementById(id);
+  input.addEventListener('input', resetearBotonTx);
+  input.addEventListener('change', resetearBotonTx);
+});
+function resetearBotonTx() {
+  const btn = document.getElementById('btn-aplicar-tx');
+  btn.disabled = false;
+  btn.textContent = 'Aplicar configuración del transformador';
+  btn.classList.remove('aplicado');
+  limpiarFeedback('feedback-tx');
+}
+
+// === Aplicar Aerogenerador ===
+document.getElementById('btn-aplicar-aero').onclick = async function () {
+  const g1 = document.getElementById('gesto1-dir').value;
+  const g2 = document.getElementById('gesto2-dir').value;
+
+  this.disabled = true;
+  this.textContent = 'Aplicando...';
+
+  try {
+    const url = '/vientos-sin-fronteras/AccionServlet?accion=conectar_ml' +
+      '&gesto1Direccion=' + encodeURIComponent(g1) +
+      '&gesto2Direccion=' + encodeURIComponent(g2);
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      mostrarFeedback('feedback-aero', '✓ Modelo conectado: Gesto 1 → ' + g1 + ', Gesto 2 → ' + g2, 'ok');
+      this.textContent = '✓ Configuración aplicada';
+    } else {
+      mostrarFeedback('feedback-aero', '✗ ' + (d.error || 'Error'), 'error');
+      this.disabled = false;
+      this.textContent = 'Aplicar configuración del aerogenerador';
+    }
+  } catch (e) {
+    mostrarFeedback('feedback-aero', '✗ Error de conexión', 'error');
+    this.disabled = false;
+    this.textContent = 'Aplicar configuración del aerogenerador';
+  }
+};
+
+// === Aplicar Transformador ===
+document.getElementById('btn-aplicar-tx').onclick = async function () {
+  const grupo = document.getElementById('tx-grupo').value.trim();
+  const pot   = document.getElementById('tx-potencia').value.trim();
+  const alta  = document.getElementById('tx-alta').value.trim();
+  const baja  = document.getElementById('tx-baja').value.trim();
+
+  if (!grupo || !pot || !alta || !baja) {
+    mostrarFeedback('feedback-tx', '✗ Faltan datos: completá los 4 campos', 'error');
+    return;
+  }
+
+  this.disabled = true;
+  this.textContent = 'Aplicando...';
+
+  try {
+    const url = '/vientos-sin-fronteras/AccionServlet?accion=configurar_tx' +
+      '&grupoVectorial=' + encodeURIComponent(grupo) +
+      '&potenciaMva='    + encodeURIComponent(pot) +
+      '&conversionAlta=' + encodeURIComponent(alta) +
+      '&conversionBaja=' + encodeURIComponent(baja);
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      mostrarFeedback('feedback-tx', '✓ Transformador configurado correctamente', 'ok');
+      this.textContent = '✓ Configuración aplicada';
+    } else {
+      mostrarFeedback('feedback-tx', '✗ ' + (d.error || 'Error') + ' — revisá los datos con el Técnico', 'error');
+      this.disabled = false;
+      this.textContent = 'Aplicar configuración del transformador';
+    }
+  } catch (e) {
+    mostrarFeedback('feedback-tx', '✗ Error de conexión', 'error');
+    this.disabled = false;
+    this.textContent = 'Aplicar configuración del transformador';
+  }
+};
+
+// === Aplicar Subestación ===
+document.getElementById('btn-aplicar-sub').onclick = async function () {
+  this.disabled = true;
+  this.textContent = 'Activando...';
+
+  try {
+    const r = await fetch('/vientos-sin-fronteras/AccionServlet?accion=activar_sub', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      mostrarFeedback('feedback-sub', '✓ Subestación activa, comienza a fluir energía', 'ok');
+      this.textContent = '✓ Subestación activada';
+    } else {
+      mostrarFeedback('feedback-sub', '✗ ' + (d.error || 'Error'), 'error');
+      this.disabled = false;
+      this.textContent = 'Activar subestación';
+    }
+  } catch (e) {
+    mostrarFeedback('feedback-sub', '✗ Error de conexión', 'error');
+    this.disabled = false;
+    this.textContent = 'Activar subestación';
+  }
+};
+
+// === Polling para refrescar el estado general ===
+async function refrescar() {
+  try {
+    const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
+    const e = await r.json();
+
+    document.getElementById('puntaje').textContent = e.puntaje;
+    document.getElementById('tiempo-restante').textContent = e.tiempoRestante;
+    document.getElementById('estado-actual').textContent = e.estado;
+
+    if (!e.programador) return;
+
+    // Actualizar leds e indicadores
+    const aeroOk = e.programador.mlConectado;
+    const txOk   = e.programador.txConfigurado;
+    const subOk  = e.programador.subestacionOn;
+
+    document.getElementById('led-aero').classList.toggle('activo', aeroOk);
+    document.getElementById('led-tx').classList.toggle('activo', txOk);
+    document.getElementById('led-sub').classList.toggle('activo', subOk);
+    document.getElementById('estado-aero').textContent = aeroOk ? 'ML conectado' : 'Sin configurar';
+    document.getElementById('estado-tx').textContent   = txOk   ? 'Configurado'  : 'Sin configurar';
+    document.getElementById('estado-sub').textContent  = subOk  ? 'Activa'       : 'Inactiva';
+
+    // Si el sistema dejó de tener algo configurado (ej. quemaron el transformador),
+    // habilitar el botón correspondiente para que la chica pueda volver a aplicar.
+    // NO tocamos el botón si está OK — eso es manejado por los handlers de input/change.
+    if (!aeroOk) {
+      const b = document.getElementById('btn-aplicar-aero');
+      if (b.textContent.indexOf('Aplicando') === -1) {
+        b.disabled = false;
+        b.textContent = 'Aplicar configuración del aerogenerador';
+      }
+    }
+    if (!txOk) {
+      const b = document.getElementById('btn-aplicar-tx');
+      if (b.textContent.indexOf('Aplicando') === -1) {
+        b.disabled = false;
+        b.textContent = 'Aplicar configuración del transformador';
+      }
+    }
+    if (!subOk) {
+      const b = document.getElementById('btn-aplicar-sub');
+      if (b.textContent.indexOf('Activando') === -1) {
+        b.disabled = false;
+        b.textContent = 'Activar subestación';
+      }
+    }
+
+  } catch (err) {
+    console.error('refrescar falló:', err);
+  }
+}
+
+refrescar();
+setInterval(refrescar, 1000);
+</script>
+</body>
+</html>

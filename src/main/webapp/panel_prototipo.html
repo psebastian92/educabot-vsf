@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de Control — Vientos sin fronteras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2128;
+  --border: #2d333b;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --aero: #5DCAA5;
+  --warn: #EF9F27;
+  --danger: #E24B4A;
+  --ok: #1D9E75;
+  --acento: #AFA9EC;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.rol-badge {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.rol-icono {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #5DCAA5, #1D9E75);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.header-stats {
+  display: flex; gap: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+}
+.stat-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.stat-chip strong {
+  color: var(--aero);
+  margin-left: 6px;
+}
+.stat-chip.tiempo strong { color: var(--acento); }
+
+.grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 14px;
+}
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.card-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* ===== Brújula ===== */
+.brujula-wrap { display: flex; justify-content: center; }
+.brujula-svg { width: 100%; max-width: 240px; aspect-ratio: 1; }
+.brujula-letra {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700;
+  fill: var(--muted);
+}
+.brujula-letra-cardinal { fill: var(--text); font-size: 16px; }
+.flecha-viento {
+  fill: var(--danger);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: 150px 150px;
+}
+.viento-label {
+  text-align: center;
+  margin-top: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+.viento-label strong {
+  color: var(--danger);
+  font-size: 16px;
+  margin-left: 6px;
+}
+
+/* ===== Gráfico de energía ===== */
+.energia-card { grid-row: span 1; }
+.energia-grande {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--aero);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.energia-unidad {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.grafico-svg {
+  width: 100%;
+  height: 140px;
+  background: rgba(93,202,165,0.04);
+  border: 1px solid rgba(93,202,165,0.15);
+  border-radius: 6px;
+}
+.linea-grafico {
+  fill: none;
+  stroke: var(--aero);
+  stroke-width: 2;
+}
+.area-grafico {
+  fill: rgba(93,202,165,0.18);
+}
+.eje-y-texto {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+/* ===== Transformador ===== */
+.tx-modelo {
+  font-family: 'Space Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+.tx-modelo.sin-modelo {
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.tx-carga-label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  margin-bottom: 4px;
+}
+.tx-carga-bar {
+  height: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 12px;
+}
+.tx-carga-fill {
+  height: 100%;
+  background: var(--aero);
+  transition: width 0.5s, background 0.3s;
+  width: 0%;
+}
+.tx-carga-fill.warn { background: var(--warn); }
+.tx-carga-fill.danger { background: var(--danger); }
+
+.btn-reemplazar {
+  width: 100%;
+  background: var(--acento);
+  border: none;
+  color: white;
+  padding: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-reemplazar:hover { opacity: 0.85; }
+.btn-reemplazar:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== Subestación ===== */
+.subestacion {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.sub-led {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 8px var(--danger);
+  transition: all 0.3s;
+}
+.sub-led.on {
+  background: var(--ok);
+  box-shadow: 0 0 8px var(--ok);
+}
+.sub-texto {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  flex: 1;
+}
+.sub-estado {
+  color: var(--muted);
+  font-size: 11px;
+}
+.sub-estado.on { color: var(--ok); }
+
+/* ===== Alertas ===== */
+.alertas-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.alerta {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border-left: 3px solid var(--warn);
+  background: rgba(239,159,39,0.06);
+  animation: slideIn 0.3s ease;
+}
+.alerta.err {
+  border-left-color: var(--danger);
+  background: rgba(226,75,74,0.08);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.alerta-codigo {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--warn);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.alerta.err .alerta-codigo { color: var(--danger); }
+.alerta-tarea {
+  font-size: 11px;
+  color: var(--muted);
+}
+.sin-alertas {
+  text-align: center;
+  padding: 30px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.estado-banner {
+  max-width: 1200px;
+  margin: 0 auto 14px;
+  padding: 10px 16px;
+  background: rgba(175,169,236,0.08);
+  border-left: 3px solid var(--acento);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.estado-banner strong { color: var(--acento); }
+.estado-banner.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="rol-badge">
+    <div class="rol-icono">🛰️</div>
+    <span>OPERARIO PANEL DE CONTROL</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">Puntos<strong id="puntaje">0</strong></div>
+    <div class="stat-chip tiempo">⏱<strong id="tiempo-restante">15:00</strong></div>
+  </div>
+</div>
+
+<div class="estado-banner" id="estado-banner">
+  Estado de la partida: <strong id="estado-actual">esperando</strong>
+</div>
+
+<div class="grid">
+
+  <!-- Columna izquierda: brújula, transformador, subestación -->
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+
+    <div class="card">
+      <div class="card-title">Dirección del viento</div>
+      <div class="brujula-wrap">
+        <svg viewBox="0 0 300 300" class="brujula-svg" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="150" cy="150" r="125" fill="none" stroke="#2d333b" stroke-width="1"/>
+          <circle cx="150" cy="150" r="100" fill="none" stroke="#2d333b" stroke-width="1" stroke-dasharray="2 4"/>
+
+          <!-- Líneas direccionales -->
+          <line x1="150" y1="40" x2="150" y2="60"  stroke="#2d333b" stroke-width="1"/>
+          <line x1="150" y1="240" x2="150" y2="260" stroke="#2d333b" stroke-width="1"/>
+          <line x1="40"  y1="150" x2="60"  y2="150" stroke="#2d333b" stroke-width="1"/>
+          <line x1="240" y1="150" x2="260" y2="150" stroke="#2d333b" stroke-width="1"/>
+
+          <!-- Letras -->
+          <text x="150" y="34" text-anchor="middle" class="brujula-letra brujula-letra-cardinal">N</text>
+          <text x="150" y="278" text-anchor="middle" class="brujula-letra brujula-letra-cardinal">S</text>
+          <text x="30"  y="155" text-anchor="middle" class="brujula-letra brujula-letra-cardinal">O</text>
+          <text x="270" y="155" text-anchor="middle" class="brujula-letra brujula-letra-cardinal">E</text>
+          <text x="227" y="73"  text-anchor="middle" class="brujula-letra">NE</text>
+          <text x="227" y="232" text-anchor="middle" class="brujula-letra">SE</text>
+          <text x="73"  y="73"  text-anchor="middle" class="brujula-letra">NO</text>
+          <text x="73"  y="232" text-anchor="middle" class="brujula-letra">SO</text>
+
+          <!-- Flecha del viento (apunta al N por defecto) -->
+          <g id="flecha-grupo" transform="rotate(0 150 150)">
+            <path class="flecha-viento" d="M 150 60 L 142 100 L 150 92 L 158 100 Z"/>
+            <path d="M 150 240 L 145 215 L 150 220 L 155 215 Z" fill="#3d4250"/>
+            <circle cx="150" cy="150" r="6" fill="var(--text)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="viento-label">Sopla desde: <strong id="viento-actual">—</strong></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Transformador</div>
+      <div class="tx-modelo sin-modelo" id="tx-modelo">Sin transformador</div>
+      <div class="tx-carga-label">
+        <span>Carga del transformador</span>
+        <span id="tx-carga-pct">0%</span>
+      </div>
+      <div class="tx-carga-bar">
+        <div class="tx-carga-fill" id="tx-carga-fill"></div>
+      </div>
+      <button class="btn-reemplazar" id="btn-reemplazar">Reemplazar transformador</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Subestación</div>
+      <div class="subestacion">
+        <div class="sub-led" id="sub-led"></div>
+        <div class="sub-texto">
+          Estado: <span class="sub-estado" id="sub-estado">Inactiva</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Columna derecha: energía + alertas -->
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+
+    <div class="card energia-card">
+      <div class="card-title">Energía generada</div>
+      <div class="energia-grande" id="energia-actual">0</div>
+      <div class="energia-unidad">kW EN ESTE MOMENTO</div>
+      <svg viewBox="0 0 400 140" class="grafico-svg" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Líneas de referencia -->
+        <line x1="0" y1="35"  x2="400" y2="35"  stroke="rgba(93,202,165,0.12)" stroke-width="1" stroke-dasharray="2 4"/>
+        <line x1="0" y1="70"  x2="400" y2="70"  stroke="rgba(93,202,165,0.12)" stroke-width="1" stroke-dasharray="2 4"/>
+        <line x1="0" y1="105" x2="400" y2="105" stroke="rgba(93,202,165,0.12)" stroke-width="1" stroke-dasharray="2 4"/>
+
+        <!-- Etiquetas eje Y -->
+        <text x="4" y="12"  class="eje-y-texto">400</text>
+        <text x="4" y="40"  class="eje-y-texto">300</text>
+        <text x="4" y="75"  class="eje-y-texto">200</text>
+        <text x="4" y="110" class="eje-y-texto">100</text>
+        <text x="4" y="136" class="eje-y-texto">0</text>
+
+        <!-- Área + línea (se actualiza en JS) -->
+        <path class="area-grafico"  id="area-grafico"  d=""/>
+        <path class="linea-grafico" id="linea-grafico" d=""/>
+      </svg>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Mensajes de alerta</div>
+      <div class="alertas-list" id="alertas-list">
+        <div class="sin-alertas">Sin alertas activas.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const ORIENTACIONES = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+const HISTORIAL_KW = [];
+const MAX_PUNTOS_GRAFICO = 60; // últimos 60 segundos visualizados
+
+async function obtenerEstado() {
+  try {
+    const r = await fetch('/vientos-sin-fronteras/EstadoServlet');
+    return await r.json();
+  } catch (e) {
+    console.error('No se pudo obtener el estado:', e);
+    return null;
+  }
+}
+
+function rotarFlecha(direccion) {
+  const idx = ORIENTACIONES.indexOf(direccion);
+  if (idx < 0) return;
+  // El viento "sopla desde" — la flecha apunta DESDE esa dirección hacia el centro,
+  // así que rotamos 180° desde la posición de la letra para que la punta apunte al centro.
+  const grados = idx * 45;
+  document.getElementById('flecha-grupo').setAttribute('transform', 'rotate(' + grados + ' 150 150)');
+}
+
+function actualizarTransformador(panel, tecnico) {
+  const modeloEl = document.getElementById('tx-modelo');
+  const carga = panel.cargaActual || 0;
+
+  if (panel.transformador.modelo) {
+    modeloEl.textContent = 'Modelo: ' + panel.transformador.modelo;
+    modeloEl.classList.remove('sin-modelo');
+  } else {
+    modeloEl.textContent = 'Sin transformador';
+    modeloEl.classList.add('sin-modelo');
+  }
+
+  document.getElementById('tx-carga-pct').textContent = carga + '%';
+  const fill = document.getElementById('tx-carga-fill');
+  fill.style.width = Math.min(100, carga) + '%';
+  fill.classList.toggle('warn',   carga >= 70 && carga < 90);
+  fill.classList.toggle('danger', carga >= 90);
+}
+
+function actualizarSubestacion(panel) {
+  const led = document.getElementById('sub-led');
+  const txt = document.getElementById('sub-estado');
+  if (panel.subestacionOn) {
+    led.classList.add('on');
+    txt.classList.add('on');
+    txt.textContent = 'Activa';
+  } else {
+    led.classList.remove('on');
+    txt.classList.remove('on');
+    txt.textContent = 'Inactiva';
+  }
+}
+
+function actualizarEnergia(panel) {
+  document.getElementById('energia-actual').textContent = panel.energiaActual || 0;
+
+  // Agregar al historial
+  HISTORIAL_KW.push(panel.energiaActual || 0);
+  if (HISTORIAL_KW.length > MAX_PUNTOS_GRAFICO) HISTORIAL_KW.shift();
+
+  // Dibujar líneas
+  const w = 400, h = 140;
+  const max = 400; // techo del gráfico
+  if (HISTORIAL_KW.length < 2) return;
+
+  const dx = w / (MAX_PUNTOS_GRAFICO - 1);
+  let d = '';
+  HISTORIAL_KW.forEach(function (v, i) {
+    const x = i * dx;
+    const y = h - (Math.min(v, max) / max) * h;
+    d += (i === 0 ? 'M ' : ' L ') + x.toFixed(1) + ' ' + y.toFixed(1);
+  });
+
+  document.getElementById('linea-grafico').setAttribute('d', d);
+
+  // Área (cierra hasta abajo)
+  const ultimoX = (HISTORIAL_KW.length - 1) * dx;
+  const dArea = d + ' L ' + ultimoX.toFixed(1) + ' ' + h + ' L 0 ' + h + ' Z';
+  document.getElementById('area-grafico').setAttribute('d', dArea);
+}
+
+function actualizarAlertas(alertas) {
+  const cont = document.getElementById('alertas-list');
+  if (!alertas || alertas.length === 0) {
+    cont.innerHTML = '<div class="sin-alertas">Sin alertas activas.</div>';
+    return;
+  }
+  cont.innerHTML = '';
+  alertas.forEach(function (a) {
+    const div = document.createElement('div');
+    div.className = 'alerta' + (a.tipo === 'ERR' ? ' err' : '');
+    div.innerHTML =
+      '<div class="alerta-codigo">' + a.codigo + '</div>' +
+      '<div class="alerta-tarea">Informalo al Técnico Especialista</div>';
+    cont.appendChild(div);
+  });
+}
+
+async function refrescar() {
+  const e = await obtenerEstado();
+  if (!e) return;
+
+  document.getElementById('puntaje').textContent = e.puntaje;
+  document.getElementById('tiempo-restante').textContent = e.tiempoRestante;
+  document.getElementById('estado-actual').textContent = e.estado;
+
+  // Solo refrescar viento si la partida está en juego
+  if (e.estado === 'jugando') {
+    rotarFlecha(e.panel.viento);
+    document.getElementById('viento-actual').textContent = e.panel.viento;
+  } else {
+    document.getElementById('viento-actual').textContent = '—';
+  }
+
+  actualizarTransformador(e.panel, e.tecnico);
+  actualizarSubestacion(e.panel);
+  actualizarEnergia(e.panel);
+  actualizarAlertas(e.alertas);
+}
+
+document.getElementById('btn-reemplazar').onclick = async function () {
+  this.disabled = true;
+  this.textContent = 'Reemplazando...';
+  try {
+    const r = await fetch('/vientos-sin-fronteras/AccionServlet?accion=reemplazar_tx', { method: 'POST' });
+    const data = await r.json();
+    if (data.ok) {
+      this.textContent = 'Nuevo: ' + data.nuevoModelo;
+      setTimeout(() => {
+        this.textContent = 'Reemplazar transformador';
+        this.disabled = false;
+      }, 1500);
+      refrescar();
+    } else {
+      this.textContent = data.error || 'Error';
+      setTimeout(() => {
+        this.textContent = 'Reemplazar transformador';
+        this.disabled = false;
+      }, 2000);
+    }
+  } catch (e) {
+    this.textContent = 'Error de conexión';
+    setTimeout(() => {
+      this.textContent = 'Reemplazar transformador';
+      this.disabled = false;
+    }, 2000);
+  }
+};
+
+refrescar();
+setInterval(refrescar, 1000);
+</script>
+</body>
+</html>
